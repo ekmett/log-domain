@@ -12,8 +12,8 @@ bug-reports:   http://github.com/ekmett/log/issues
 copyright:     Copyright (C) 2013 Edward A. Kmett
 build-type:    Custom
 tested-with:   GHC == 7.4.1, GHC == 7.6.1
-synopsis:      Log-domain Numbers
-description:   Log-domain Numbers
+synopsis:      Log-domain arithmetic
+description:   Log-domain arithmetic
 
 extra-source-files:
   .travis.yml
