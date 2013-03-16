@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------
 -- |
 -- Copyright :  (c) Edward Kmett 2013
@@ -25,6 +26,7 @@ import Data.Distributive
 import Data.Foldable
 import Data.Functor.Apply
 import Data.Hashable
+import Data.SafeCopy
 import Data.Traversable
 import Data.Data
 import Foreign.Ptr
@@ -102,6 +104,8 @@ instance Monad Log where
   {-# INLINE return #-}
   Log a >>= f = f a
   {-# INLINE (>>=) #-}
+
+deriveSafeCopy 1 'base ''Log
 
 -- | Negative infinity
 negInf :: Fractional a => a
