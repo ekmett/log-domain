@@ -24,7 +24,8 @@ import Data.Binary as Binary
 import Data.Complex
 import Data.Distributive
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Bind
+import Data.Functor.Extend
 import Data.Hashable
 import Data.SafeCopy
 import Data.Traversable
@@ -83,10 +84,14 @@ instance Distributive Log where
   distribute = Log . fmap runLog
   {-# INLINE distribute #-}
 
+instance Extend Log where
+  extended f w@Log{} = Log (f w)
+  {-# INLINE extended #-}
+
 instance Comonad Log where
   extract (Log a) = a
   {-# INLINE extract #-}
-  extend f w@(Log _) = Log (f w)
+  extend f w@Log{} = Log (f w)
   {-# INLINE extend #-}
 
 instance Applicative Log where
@@ -95,9 +100,17 @@ instance Applicative Log where
   Log f <*> Log a = Log (f a)
   {-# INLINE (<*>) #-}
 
+instance ComonadApply Log where
+  Log f <@> Log a = Log (f a)
+  {-# INLINE (<@>) #-}
+
 instance Apply Log where
   Log f <.> Log a = Log (f a)
   {-# INLINE (<.>) #-}
+
+instance Bind Log where
+  Log a >>- f = f a
+  {-# INLINE (>>-) #-}
 
 instance Monad Log where
   return = Log
