@@ -28,6 +28,8 @@ import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
 import Data.SafeCopy
+import Data.Semigroup.Foldable
+import Data.Semigroup.Traversable
 import Data.Traversable
 import Data.Data
 import Foreign.Ptr
@@ -76,9 +78,17 @@ instance Foldable Log where
   foldMap f (Log a) = f a
   {-# INLINE foldMap #-}
 
+instance Foldable1 Log where
+  foldMap1 f (Log a) = f a
+  {-# INLINE foldMap1 #-}
+
 instance Traversable Log where
   traverse f (Log a) = Log <$> f a
   {-# INLINE traverse #-}
+
+instance Traversable1 Log where
+  traverse1 f (Log a) = Log <$> f a
+  {-# INLINE traverse1 #-}
 
 instance Distributive Log where
   distribute = Log . fmap runLog
