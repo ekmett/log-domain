@@ -19,6 +19,7 @@ module Numeric.Log
 import Control.Applicative
 import Control.Comonad
 import Control.DeepSeq
+import Data.Binary as Binary
 import Data.Complex
 import Data.Distributive
 import Data.Foldable
@@ -39,6 +40,12 @@ instance (Floating a, Show a) => Show (Log a) where
 
 instance (Floating a, Read a) => Read (Log a) where
   readPrec = Log . log <$> step readPrec
+
+instance Binary a => Binary (Log a) where
+  put = put . runLog
+  {-# INLINE put #-}
+  get = Log <$> Binary.get
+  {-# INLINE get #-}
 
 instance Functor Log where
   fmap f (Log a) = Log (f a)
