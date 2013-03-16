@@ -22,6 +22,7 @@ import Control.Comonad
 import Control.DeepSeq
 import Data.Binary as Binary
 import Data.Complex
+import Data.Data
 import Data.Distributive
 import Data.Foldable
 import Data.Functor.Bind
@@ -31,7 +32,6 @@ import Data.SafeCopy
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Traversable
-import Data.Data
 import Foreign.Ptr
 import Foreign.Storable
 import Generics.Deriving
