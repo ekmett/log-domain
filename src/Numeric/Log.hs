@@ -175,6 +175,46 @@ instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
   toRational (Log a) = toRational (exp a)
   {-# INLINE toRational #-}
 
+logMap :: Floating a => (a -> a) -> Log a -> Log a
+logMap f = Log . log . f . exp . runLog
+{-# INLINE logMap #-}
+
+instance (RealFloat a, Precise a) => Floating (Log a) where
+  pi = Log (log pi)
+  {-# INLINE pi #-}
+  exp (Log a) = Log (exp a)
+  {-# INLINE exp #-}
+  log (Log a) = Log (log a)
+  {-# INLINE log #-}
+  sqrt (Log a) = Log (a / 2)
+  {-# INLINE sqrt #-}
+  logBase (Log a) (Log b) = Log (log (logBase (exp a) (exp b)))
+  {-# INLINE logBase #-}
+  sin = logMap sin
+  {-# INLINE sin #-}
+  cos = logMap cos
+  {-# INLINE cos #-}
+  tan = logMap tan
+  {-# INLINE tan #-}
+  asin = logMap asin
+  {-# INLINE asin #-}
+  acos = logMap acos
+  {-# INLINE acos #-}
+  atan = logMap atan
+  {-# INLINE atan #-}
+  sinh = logMap sinh
+  {-# INLINE sinh #-}
+  cosh = logMap cosh
+  {-# INLINE cosh #-}
+  tanh = logMap tanh
+  {-# INLINE tanh #-}
+  asinh = logMap asinh
+  {-# INLINE asinh #-}
+  acosh = logMap acosh
+  {-# INLINE acosh #-}
+  atanh = logMap atanh
+  {-# INLINE atanh #-}
+
 {-# RULES
 "realToFrac" realToFrac = Log . realToFrac . runLog :: Log Double -> Log Float
 "realToFrac" realToFrac = Log . realToFrac . runLog :: Log Float -> Log Double
