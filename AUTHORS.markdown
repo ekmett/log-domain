@@ -1,4 +1,4 @@
-`log` was inspired by the `LogFloat` package by Wren Thornton.
+`log-domain` was inspired by the `LogFloat` package by Wren Thornton.
 
 A variant of that code was introduced into `Data.Analytics.Numeric.Log` in the [analytics](http://github.com/analytics) project by
 
