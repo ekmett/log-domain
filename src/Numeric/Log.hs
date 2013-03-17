@@ -26,7 +26,7 @@ import Data.Binary as Binary
 import Data.Complex
 import Data.Data
 import Data.Distributive
-import Data.Foldable hiding (sum)
+import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
@@ -178,6 +178,19 @@ instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
   toRational (Log a) = toRational (exp a)
   {-# INLINE toRational #-}
 
+instance (Precise a, RealFloat a) => Monoid (Log a) where
+  mempty  = Log negInf
+  {-# INLINE mempty #-}
+  mappend = (+)
+  {-# INLINE mappend #-}
+  mconcat [] = 0
+  mconcat xs
+    | isInfinite a = Log a
+    | otherwise    = Log $ a + log (foldl' (\r x -> r + exp (runLog x - a)) 0 xs)
+    where Log a = maximum xs
+  {-# INLINE mconcat #-}
+
+
 logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Log . log . f . exp . runLog
 {-# INLINE logMap #-}
@@ -201,10 +214,11 @@ logMap f = Log . log . f . exp . runLog
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
-sum xs
-  | isInfinite a = Log a
-  | otherwise    = Log $ a + log (getSum $ foldMap (\x -> Sum $ exp $ runLog x - a) xs)
-  where Log a = maximum xs
+sum xs = Log $ case Foldable.foldr (\ (Log x) -> Just . maybe x (max x)) Nothing xs of
+  Nothing -> negInf
+  Just a
+    | isInfinite a -> a
+    | otherwise    -> a + log (Foldable.foldl' (\r x -> r + exp (runLog x - a)) 0 xs)
 {-# INLINE sum #-}
 
 instance (RealFloat a, Precise a) => Floating (Log a) where
