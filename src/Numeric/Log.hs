@@ -203,8 +203,8 @@ logMap f = Log . log . f . exp . runLog
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
 sum xs
   | isInfinite a = Log a
-  | otherwise    = Log $ a + log (getSum $ foldMap (\x -> Sum $ exp $ runLog x - a) xs)
-  where Log a = maximum xs
+  | otherwise    = Log $ a + log1p (getSum (foldMap (\x -> Sum $ expm1 $ runLog x - a) xs) + fromIntegral count - 1)
+  where (Log a, count) = foldl' (\(maxA,n) y->(max maxA y, n+1)) (0,0::Int) xs
 {-# INLINE sum #-}
 
 instance (RealFloat a, Precise a) => Floating (Log a) where
