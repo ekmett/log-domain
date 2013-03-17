@@ -15,8 +15,10 @@
 module Numeric.Log
   ( Log(..)
   , Precise(..)
+  , sum
   ) where
 
+import Prelude hiding (maximum, sum)
 import Control.Applicative
 import Control.Comonad
 import Control.DeepSeq
@@ -24,7 +26,8 @@ import Data.Binary as Binary
 import Data.Complex
 import Data.Data
 import Data.Distributive
-import Data.Foldable
+import Data.Foldable hiding (sum)
+import qualified Data.Foldable as Foldable
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
@@ -178,6 +181,30 @@ instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
 logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Log . log . f . exp . runLog
 {-# INLINE logMap #-}
+
+-- | Efficiently and accurately sum a set of log-domain numbers
+--
+-- While folding with @(+)@ accomplishes the same end, it requires an
+-- @2*n@ additions and subtractions to sum @n@ terms. Here we require
+-- only a @n - 1@ additions and subtractions, minimizing opportunities
+-- for round-off error.
+--
+-- While for small quantities the naive sum accumulates error,
+--
+-- > let xs = replicate 40000 (Log 1e-4) :: [Log Float]
+-- > Prelude.sum xs
+-- 40001.3
+--
+-- This sum gives a more accurate result,
+--
+-- > Numeric.Log.sum xs
+-- 40004.01
+sum :: (RealFloat a, Ord a, Precise a, Foldable f, Functor f) => f (Log a) -> Log a
+sum xs
+  | isInfinite a = Log a
+  | otherwise    = Log $ a + log (Foldable.sum (fmap (\(Log x)->exp (x - a)) xs))
+  where Log a = maximum xs
+{-# INLINE sum #-}
 
 instance (RealFloat a, Precise a) => Floating (Log a) where
   pi = Log (log pi)
