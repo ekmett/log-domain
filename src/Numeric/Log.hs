@@ -45,6 +45,8 @@ import Text.Read
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Log { runLog :: a } deriving (Eq,Ord,Data,Typeable,Generic)
 
+deriveSafeCopy 1 'base ''Log
+
 instance (Floating a, Show a) => Show (Log a) where
   showsPrec d (Log a) = showsPrec d (exp a)
 
@@ -133,7 +135,23 @@ instance Monad Log where
   Log a >>= f = f a
   {-# INLINE (>>=) #-}
 
-deriveSafeCopy 1 'base ''Log
+instance (RealFloat a, Precise a, Enum a) => Enum (Log a) where
+  succ a = a + 1
+  {-# INLINE succ #-}
+  pred a = a - 1
+  {-# INLINE pred #-}
+  toEnum   = fromIntegral
+  {-# INLINE toEnum #-}
+  fromEnum = round . exp . runLog
+  {-# INLINE fromEnum #-}
+  enumFrom (Log a) = [ Log (log b) | b <- enumFrom (exp a) ]
+  {-# INLINE enumFrom #-}
+  enumFromThen (Log a) (Log b) = [ Log (log c) | c <- enumFromThen (exp a) (exp b) ]
+  {-# INLINE enumFromThen #-}
+  enumFromTo (Log a) (Log b) = [ Log (log c) | c <- enumFromTo (exp a) (exp b) ]
+  {-# INLINE enumFromTo #-}
+  enumFromThenTo (Log a) (Log b) (Log c) = [ Log (log d) | d <- enumFromThenTo (exp a) (exp b) (exp c) ]
+  {-# INLINE enumFromThenTo #-}
 
 -- | Negative infinity
 negInf :: Fractional a => a
