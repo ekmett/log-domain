@@ -182,22 +182,21 @@ logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Log . log . f . exp . runLog
 {-# INLINE logMap #-}
 
--- | Efficiently and accurately sum a set of log-domain numbers
+-- | Efficiently and accurately compute the sum of a set of log-domain numbers
 --
 -- While folding with @(+)@ accomplishes the same end, it requires an
--- @2*n@ additions and subtractions to sum @n@ terms. Here we require
--- only a @n - 1@ additions and subtractions, minimizing opportunities
--- for round-off error.
+-- additional @n-2@ logarithms to sum @n@ terms. In addition,
+-- here we introduce fewer opportunities for round-off error.
 --
 -- While for small quantities the naive sum accumulates error,
 --
--- > let xs = replicate 40000 (Log 1e-4) :: [Log Float]
--- > Prelude.sum xs
+-- >>> let xs = replicate 40000 (Log 1e-4) :: [Log Float]
+-- >>> Prelude.sum xs
 -- 40001.3
 --
 -- This sum gives a more accurate result,
 --
--- > Numeric.Log.sum xs
+-- >>> Numeric.Log.sum xs
 -- 40004.01
 sum :: (RealFloat a, Ord a, Precise a, Foldable f, Functor f) => f (Log a) -> Log a
 sum xs
