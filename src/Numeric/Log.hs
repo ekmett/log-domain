@@ -198,10 +198,12 @@ logMap f = Log . log . f . exp . runLog
 --
 -- >>> Numeric.Log.sum xs
 -- 40004.01
+--
+-- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
 sum xs
   | isInfinite a = Log a
-  | otherwise    = Log $ a + log (getSum $ foldMap (\(Log x)->Sum $ exp (x - a)) xs)
+  | otherwise    = Log $ a + log (getSum $ foldMap (\x -> Sum $ exp $ runLog x - a) xs)
   where Log a = maximum xs
 {-# INLINE sum #-}
 
