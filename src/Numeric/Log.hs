@@ -30,6 +30,7 @@ import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
+import Data.Int
 import Data.Monoid
 import Data.SafeCopy
 import Data.Semigroup.Foldable
@@ -195,6 +196,8 @@ logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Log . log . f . exp . runLog
 {-# INLINE logMap #-}
 
+data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
+
 -- | Efficiently and accurately compute the sum of a set of log-domain numbers
 --
 -- While folding with @(+)@ accomplishes the same end, it requires an
@@ -214,11 +217,15 @@ logMap f = Log . log . f . exp . runLog
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
-sum xs = Log $ case Foldable.foldr (\ (Log x) -> Just . maybe x (max x)) Nothing xs of
-  Nothing -> negInf
-  Just a
+sum xs = Log $ case Foldable.foldl' step1 None xs of
+  None -> negInf
+  Acc nm1 a
     | isInfinite a -> a
-    | otherwise    -> a + log (Foldable.foldl' (\r x -> r + exp (runLog x - a)) 0 xs)
+    | otherwise    -> a + log1p (Foldable.foldl' (step2 a) 0 xs + fromIntegral nm1)
+  where
+    step1 None      (Log x) = Acc 0 x
+    step1 (Acc n y) (Log x) = Acc (n + 1) (max x y)
+    step2 a r (Log x) = r + expm1 (x - a)
 {-# INLINE sum #-}
 
 instance (RealFloat a, Precise a) => Floating (Log a) where
