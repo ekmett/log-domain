@@ -27,10 +27,10 @@ import Data.Complex
 import Data.Data
 import Data.Distributive
 import Data.Foldable hiding (sum)
-import qualified Data.Foldable as Foldable
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
+import Data.Monoid
 import Data.SafeCopy
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
@@ -198,10 +198,10 @@ logMap f = Log . log . f . exp . runLog
 --
 -- >>> Numeric.Log.sum xs
 -- 40004.01
-sum :: (RealFloat a, Ord a, Precise a, Foldable f, Functor f) => f (Log a) -> Log a
+sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
 sum xs
   | isInfinite a = Log a
-  | otherwise    = Log $ a + log (Foldable.sum (fmap (\(Log x)->exp (x - a)) xs))
+  | otherwise    = Log $ a + log (getSum $ foldMap (\(Log x)->Sum $ exp (x - a)) xs)
   where Log a = maximum xs
 {-# INLINE sum #-}
 
