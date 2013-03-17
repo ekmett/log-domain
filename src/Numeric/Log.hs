@@ -31,6 +31,7 @@ import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
 import Data.Int
+import Data.List as List hiding (sum)
 import Data.Monoid
 import Data.SafeCopy
 import Data.Semigroup.Foldable
@@ -179,18 +180,22 @@ instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
   toRational (Log a) = toRational (exp a)
   {-# INLINE toRational #-}
 
+data Acc1 a = Acc1 {-# UNPACK #-} !Int64 !a
+
 instance (Precise a, RealFloat a) => Monoid (Log a) where
   mempty  = Log negInf
   {-# INLINE mempty #-}
   mappend = (+)
   {-# INLINE mappend #-}
   mconcat [] = 0
-  mconcat xs
-    | isInfinite a = Log a
-    | otherwise    = Log $ a + log (foldl' (\r x -> r + exp (runLog x - a)) 0 xs)
-    where Log a = maximum xs
+  mconcat (Log z:zs) = Log $ case List.foldl' step1 (Acc1 0 z) zs of
+    Acc1 nm1 a
+      | isInfinite a -> a
+      | otherwise    -> a + log1p (List.foldl' (step2 a) 0 zs + fromIntegral nm1)
+    where
+      step1 (Acc1 n y) (Log x) = Acc1 (n + 1) (max x y)
+      step2 a r (Log x) = r + expm1 (x - a)
   {-# INLINE mconcat #-}
-
 
 logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Log . log . f . exp . runLog
