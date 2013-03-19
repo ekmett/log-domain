@@ -1,3 +1,7 @@
+0.3.0.1
+-------
+* Wider `binary` version bound
+
 0.3
 ---
 * Added support for `cereal`.
