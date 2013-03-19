@@ -36,6 +36,7 @@ import Data.Monoid
 import Data.SafeCopy
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
+import Data.Serialize as Serialize
 import Data.Traversable
 import Foreign.Ptr
 import Foreign.Storable
@@ -54,9 +55,15 @@ instance (Floating a, Read a) => Read (Log a) where
   readPrec = Log . log <$> step readPrec
 
 instance Binary a => Binary (Log a) where
-  put = put . runLog
+  put = Binary.put . runLog
   {-# INLINE put #-}
   get = Log <$> Binary.get
+  {-# INLINE get #-}
+
+instance Serialize a => Serialize (Log a) where
+  put = Serialize.put . runLog
+  {-# INLINE put #-}
+  get = Log <$> Serialize.get
   {-# INLINE get #-}
 
 instance Functor Log where
