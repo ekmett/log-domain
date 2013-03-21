@@ -30,6 +30,7 @@ import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
+import Data.Hashable.Extras
 import Data.Int
 import Data.List as List hiding (sum)
 import Data.Monoid
@@ -73,6 +74,8 @@ instance Functor Log where
 instance Hashable a => Hashable (Log a) where
   hashWithSalt i (Log a) = hashWithSalt i a
   {-# INLINE hashWithSalt #-}
+
+instance Hashable1 Log
 
 instance Storable a => Storable (Log a) where
   sizeOf = sizeOf . runLog
