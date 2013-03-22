@@ -1,3 +1,7 @@
+0.5
+---
+* Switched the Hashable1 instance to use the new, lighter, `hashable-extras`
+
 0.4
 ---
 * `instance Hashable1 Log`
