@@ -1,3 +1,7 @@
+0.4
+---
+* `instance Hashable1 Log`
+
 0.3.0.1
 -------
 * Wider `binary` version bound
