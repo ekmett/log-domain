@@ -1,6 +1,10 @@
+0.5.0.1
+-------
+* Wider bounds for `generic-deriving` so we can build with GHC HEAD.
+
 0.5
 ---
-* Switched the Hashable1 instance to use the new, lighter, `hashable-extras`
+* Switched the `Hashable1` instance to use the new, lighter, `hashable-extras`
 
 0.4
 ---
