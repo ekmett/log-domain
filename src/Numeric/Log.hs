@@ -45,104 +45,104 @@ import Generics.Deriving
 import Text.Read
 
 -- | @Log@-domain @Float@ and @Double@ values.
-newtype Log a = Log { runLog :: a } deriving (Eq,Ord,Data,Typeable,Generic)
+newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
 
 deriveSafeCopy 1 'base ''Log
 
 instance (Floating a, Show a) => Show (Log a) where
-  showsPrec d (Log a) = showsPrec d (exp a)
+  showsPrec d (Exp a) = showsPrec d (exp a)
 
 instance (Floating a, Read a) => Read (Log a) where
-  readPrec = Log . log <$> step readPrec
+  readPrec = Exp . log <$> step readPrec
 
 instance Binary a => Binary (Log a) where
-  put = Binary.put . runLog
+  put = Binary.put . ln
   {-# INLINE put #-}
-  get = Log <$> Binary.get
+  get = Exp <$> Binary.get
   {-# INLINE get #-}
 
 instance Serialize a => Serialize (Log a) where
-  put = Serialize.put . runLog
+  put = Serialize.put . ln
   {-# INLINE put #-}
-  get = Log <$> Serialize.get
+  get = Exp <$> Serialize.get
   {-# INLINE get #-}
 
 instance Functor Log where
-  fmap f (Log a) = Log (f a)
+  fmap f (Exp a) = Exp (f a)
   {-# INLINE fmap #-}
 
 instance Hashable a => Hashable (Log a) where
-  hashWithSalt i (Log a) = hashWithSalt i a
+  hashWithSalt i (Exp a) = hashWithSalt i a
   {-# INLINE hashWithSalt #-}
 
 instance Hashable1 Log
 
 instance Storable a => Storable (Log a) where
-  sizeOf = sizeOf . runLog
+  sizeOf = sizeOf . ln
   {-# INLINE sizeOf #-}
-  alignment = alignment . runLog
+  alignment = alignment . ln
   {-# INLINE alignment #-}
-  peek ptr = Log <$> peek (castPtr ptr)
+  peek ptr = Exp <$> peek (castPtr ptr)
   {-# INLINE peek #-}
-  poke ptr (Log a) = poke (castPtr ptr) a
+  poke ptr (Exp a) = poke (castPtr ptr) a
   {-# INLINE poke #-}
 
 instance NFData a => NFData (Log a) where
-  rnf (Log a) = rnf a
+  rnf (Exp a) = rnf a
   {-# INLINE rnf #-}
 
 instance Foldable Log where
-  foldMap f (Log a) = f a
+  foldMap f (Exp a) = f a
   {-# INLINE foldMap #-}
 
 instance Foldable1 Log where
-  foldMap1 f (Log a) = f a
+  foldMap1 f (Exp a) = f a
   {-# INLINE foldMap1 #-}
 
 instance Traversable Log where
-  traverse f (Log a) = Log <$> f a
+  traverse f (Exp a) = Exp <$> f a
   {-# INLINE traverse #-}
 
 instance Traversable1 Log where
-  traverse1 f (Log a) = Log <$> f a
+  traverse1 f (Exp a) = Exp <$> f a
   {-# INLINE traverse1 #-}
 
 instance Distributive Log where
-  distribute = Log . fmap runLog
+  distribute = Exp . fmap ln
   {-# INLINE distribute #-}
 
 instance Extend Log where
-  extended f w@Log{} = Log (f w)
+  extended f w@Exp{} = Exp (f w)
   {-# INLINE extended #-}
 
 instance Comonad Log where
-  extract (Log a) = a
+  extract (Exp a) = a
   {-# INLINE extract #-}
-  extend f w@Log{} = Log (f w)
+  extend f w@Exp{} = Exp (f w)
   {-# INLINE extend #-}
 
 instance Applicative Log where
-  pure = Log
+  pure = Exp
   {-# INLINE pure #-}
-  Log f <*> Log a = Log (f a)
+  Exp f <*> Exp a = Exp (f a)
   {-# INLINE (<*>) #-}
 
 instance ComonadApply Log where
-  Log f <@> Log a = Log (f a)
+  Exp f <@> Exp a = Exp (f a)
   {-# INLINE (<@>) #-}
 
 instance Apply Log where
-  Log f <.> Log a = Log (f a)
+  Exp f <.> Exp a = Exp (f a)
   {-# INLINE (<.>) #-}
 
 instance Bind Log where
-  Log a >>- f = f a
+  Exp a >>- f = f a
   {-# INLINE (>>-) #-}
 
 instance Monad Log where
-  return = Log
+  return = Exp
   {-# INLINE return #-}
-  Log a >>= f = f a
+  Exp a >>= f = f a
   {-# INLINE (>>=) #-}
 
 instance (RealFloat a, Precise a, Enum a) => Enum (Log a) where
@@ -152,15 +152,15 @@ instance (RealFloat a, Precise a, Enum a) => Enum (Log a) where
   {-# INLINE pred #-}
   toEnum   = fromIntegral
   {-# INLINE toEnum #-}
-  fromEnum = round . exp . runLog
+  fromEnum = round . exp . ln
   {-# INLINE fromEnum #-}
-  enumFrom (Log a) = [ Log (log b) | b <- enumFrom (exp a) ]
+  enumFrom (Exp a) = [ Exp (log b) | b <- enumFrom (exp a) ]
   {-# INLINE enumFrom #-}
-  enumFromThen (Log a) (Log b) = [ Log (log c) | c <- enumFromThen (exp a) (exp b) ]
+  enumFromThen (Exp a) (Exp b) = [ Exp (log c) | c <- enumFromThen (exp a) (exp b) ]
   {-# INLINE enumFromThen #-}
-  enumFromTo (Log a) (Log b) = [ Log (log c) | c <- enumFromTo (exp a) (exp b) ]
+  enumFromTo (Exp a) (Exp b) = [ Exp (log c) | c <- enumFromTo (exp a) (exp b) ]
   {-# INLINE enumFromTo #-}
-  enumFromThenTo (Log a) (Log b) (Log c) = [ Log (log d) | d <- enumFromThenTo (exp a) (exp b) (exp c) ]
+  enumFromThenTo (Exp a) (Exp b) (Exp c) = [ Exp (log d) | d <- enumFromThenTo (exp a) (exp b) (exp c) ]
   {-# INLINE enumFromThenTo #-}
 
 -- | Negative infinity
@@ -169,20 +169,20 @@ negInf = -(1/0)
 {-# INLINE negInf #-}
 
 instance (Precise a, RealFloat a) => Num (Log a) where
-  Log a * Log b
-    | isInfinite a && isInfinite b && a == -b = Log negInf
-    | otherwise = Log (a + b)
+  Exp a * Exp b
+    | isInfinite a && isInfinite b && a == -b = Exp negInf
+    | otherwise = Exp (a + b)
   {-# INLINE (*) #-}
-  Log a + Log b
-    | a == b && isInfinite a && isInfinite b = Log a
-    | a >= b    = Log (a + log1p (exp (b - a)))
-    | otherwise = Log (b + log1p (exp (a - b)))
+  Exp a + Exp b
+    | a == b && isInfinite a && isInfinite b = Exp a
+    | a >= b    = Exp (a + log1p (exp (b - a)))
+    | otherwise = Exp (b + log1p (exp (a - b)))
   {-# INLINE (+) #-}
-  Log a - Log b
-    | a == negInf && b == negInf = Log negInf
-    | otherwise = Log (a + log1p (negate (exp (b - a))))
+  Exp a - Exp b
+    | a == negInf && b == negInf = Exp negInf
+    | otherwise = Exp (a + log1p (negate (exp (b - a))))
   {-# INLINE (-) #-}
-  signum (Log a)
+  signum (Exp a)
     | a == negInf = 0
     | a > negInf  = 1
     | otherwise   = negInf
@@ -191,42 +191,42 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   {-# INLINE negate #-}
   abs = id
   {-# INLINE abs #-}
-  fromInteger = Log . log . fromInteger
+  fromInteger = Exp . log . fromInteger
   {-# INLINE fromInteger #-}
 
 instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
   -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
-  Log a / Log b
-    | a == b && isInfinite a && isInfinite b = Log negInf
-    | a == negInf                            = Log negInf
-    | otherwise                              = Log (a-b)
+  Exp a / Exp b
+    | a == b && isInfinite a && isInfinite b = Exp negInf
+    | a == negInf                            = Exp negInf
+    | otherwise                              = Exp (a-b)
   {-# INLINE (/) #-}
-  fromRational = Log . log . fromRational
+  fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
 
 instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
-  toRational (Log a) = toRational (exp a)
+  toRational (Exp a) = toRational (exp a)
   {-# INLINE toRational #-}
 
 data Acc1 a = Acc1 {-# UNPACK #-} !Int64 !a
 
 instance (Precise a, RealFloat a) => Monoid (Log a) where
-  mempty  = Log negInf
+  mempty  = Exp negInf
   {-# INLINE mempty #-}
   mappend = (+)
   {-# INLINE mappend #-}
   mconcat [] = 0
-  mconcat (Log z:zs) = Log $ case List.foldl' step1 (Acc1 0 z) zs of
+  mconcat (Exp z:zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
     Acc1 nm1 a
       | isInfinite a -> a
       | otherwise    -> a + log1p (List.foldl' (step2 a) 0 zs + fromIntegral nm1)
     where
-      step1 (Acc1 n y) (Log x) = Acc1 (n + 1) (max x y)
-      step2 a r (Log x) = r + expm1 (x - a)
+      step1 (Acc1 n y) (Exp x) = Acc1 (n + 1) (max x y)
+      step2 a r (Exp x) = r + expm1 (x - a)
   {-# INLINE mconcat #-}
 
 logMap :: Floating a => (a -> a) -> Log a -> Log a
-logMap f = Log . log . f . exp . runLog
+logMap f = Exp . log . f . exp . ln
 {-# INLINE logMap #-}
 
 data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
@@ -239,7 +239,7 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 --
 -- While for small quantities the naive sum accumulates error,
 --
--- >>> let xs = replicate 40000 (Log 1e-4) :: [Log Float]
+-- >>> let xs = replicate 40000 (Exp 1e-4) :: [Log Float]
 -- >>> Prelude.sum xs
 -- 40001.3
 --
@@ -250,27 +250,27 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
-sum xs = Log $ case Foldable.foldl' step1 None xs of
+sum xs = Exp $ case Foldable.foldl' step1 None xs of
   None -> negInf
   Acc nm1 a
     | isInfinite a -> a
     | otherwise    -> a + log1p (Foldable.foldl' (step2 a) 0 xs + fromIntegral nm1)
   where
-    step1 None      (Log x) = Acc 0 x
-    step1 (Acc n y) (Log x) = Acc (n + 1) (max x y)
-    step2 a r (Log x) = r + expm1 (x - a)
+    step1 None      (Exp x) = Acc 0 x
+    step1 (Acc n y) (Exp x) = Acc (n + 1) (max x y)
+    step2 a r (Exp x) = r + expm1 (x - a)
 {-# INLINE sum #-}
 
 instance (RealFloat a, Precise a) => Floating (Log a) where
-  pi = Log (log pi)
+  pi = Exp (log pi)
   {-# INLINE pi #-}
-  exp (Log a) = Log (exp a)
+  exp (Exp a) = Exp (exp a)
   {-# INLINE exp #-}
-  log (Log a) = Log (log a)
+  log (Exp a) = Exp (log a)
   {-# INLINE log #-}
-  sqrt (Log a) = Log (a / 2)
+  sqrt (Exp a) = Exp (a / 2)
   {-# INLINE sqrt #-}
-  logBase (Log a) (Log b) = Log (log (logBase (exp a) (exp b)))
+  logBase (Exp a) (Exp b) = Exp (log (logBase (exp a) (exp b)))
   {-# INLINE logBase #-}
   sin = logMap sin
   {-# INLINE sin #-}
@@ -298,12 +298,12 @@ instance (RealFloat a, Precise a) => Floating (Log a) where
   {-# INLINE atanh #-}
 
 {-# RULES
-"realToFrac" realToFrac = Log . realToFrac . runLog :: Log Double -> Log Float
-"realToFrac" realToFrac = Log . realToFrac . runLog :: Log Float -> Log Double
-"realToFrac" realToFrac = exp . runLog :: Log Double -> Double
-"realToFrac" realToFrac = exp . runLog :: Log Float -> Float
-"realToFrac" realToFrac = Log . log :: Double -> Log Double
-"realToFrac" realToFrac = Log . log :: Float -> Log Float #-}
+"realToFrac" realToFrac = Exp . realToFrac . ln :: Log Double -> Log Float
+"realToFrac" realToFrac = Exp . realToFrac . ln :: Log Float -> Log Double
+"realToFrac" realToFrac = exp . ln :: Log Double -> Double
+"realToFrac" realToFrac = exp . ln :: Log Float -> Float
+"realToFrac" realToFrac = Exp . log :: Double -> Log Double
+"realToFrac" realToFrac = Exp . log :: Float -> Log Float #-}
 
 -- | This provides @log1p@ and @expm1@ for working more accurately with small numbers.
 class Floating a => Precise a where
