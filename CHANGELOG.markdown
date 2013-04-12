@@ -1,3 +1,7 @@
+0.6
+---
+* Renamed the data constructor to `Exp` and the field accessor to `ln` per issue #1.
+
 0.5.0.1
 -------
 * Wider bounds for `generic-deriving` so we can build with GHC HEAD.
