@@ -3,6 +3,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 --------------------------------------------------------------------
 -- |
 -- Copyright :  (c) Edward Kmett 2013
@@ -22,6 +24,7 @@ import Prelude hiding (maximum, sum)
 import Control.Applicative
 import Control.Comonad
 import Control.DeepSeq
+import Control.Monad
 import Data.Binary as Binary
 import Data.Complex
 import Data.Data
@@ -39,10 +42,14 @@ import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
 import Data.Traversable
+import Data.Vector.Unboxed as U hiding (sum)
+import Data.Vector.Generic as G hiding (sum)
+import Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
 import Generics.Deriving
-import Text.Read
+import Text.Read as T
+import Text.Show as T
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
@@ -50,10 +57,10 @@ newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
 deriveSafeCopy 1 'base ''Log
 
 instance (Floating a, Show a) => Show (Log a) where
-  showsPrec d (Exp a) = showsPrec d (exp a)
+  showsPrec d (Exp a) = T.showsPrec d (exp a)
 
 instance (Floating a, Read a) => Read (Log a) where
-  readPrec = Exp . log <$> step readPrec
+  readPrec = Exp . log <$> step T.readPrec
 
 instance Binary a => Binary (Log a) where
   put = Binary.put . ln
@@ -154,13 +161,13 @@ instance (RealFloat a, Precise a, Enum a) => Enum (Log a) where
   {-# INLINE toEnum #-}
   fromEnum = round . exp . ln
   {-# INLINE fromEnum #-}
-  enumFrom (Exp a) = [ Exp (log b) | b <- enumFrom (exp a) ]
+  enumFrom (Exp a) = [ Exp (log b) | b <- Prelude.enumFrom (exp a) ]
   {-# INLINE enumFrom #-}
-  enumFromThen (Exp a) (Exp b) = [ Exp (log c) | c <- enumFromThen (exp a) (exp b) ]
+  enumFromThen (Exp a) (Exp b) = [ Exp (log c) | c <- Prelude.enumFromThen (exp a) (exp b) ]
   {-# INLINE enumFromThen #-}
-  enumFromTo (Exp a) (Exp b) = [ Exp (log c) | c <- enumFromTo (exp a) (exp b) ]
+  enumFromTo (Exp a) (Exp b) = [ Exp (log c) | c <- Prelude.enumFromTo (exp a) (exp b) ]
   {-# INLINE enumFromTo #-}
-  enumFromThenTo (Exp a) (Exp b) (Exp c) = [ Exp (log d) | d <- enumFromThenTo (exp a) (exp b) (exp c) ]
+  enumFromThenTo (Exp a) (Exp b) (Exp c) = [ Exp (log d) | d <- Prelude.enumFromThenTo (exp a) (exp b) (exp c) ]
   {-# INLINE enumFromThenTo #-}
 
 -- | Negative infinity
@@ -203,6 +210,51 @@ instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
   {-# INLINE (/) #-}
   fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
+
+
+newtype instance U.MVector s (Log a) = MV_Log (U.MVector s a)
+newtype instance U.Vector    (Log a) = V_Log  (U.Vector    a)
+
+instance (RealFloat a, Unbox a) => Unbox (Log a)
+
+instance (RealFloat a, Unbox a) => M.MVector U.MVector (Log a) where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_Log v) = M.basicLength v
+  basicUnsafeSlice i n (MV_Log v) = MV_Log $ M.basicUnsafeSlice i n v
+  basicOverlaps (MV_Log v1) (MV_Log v2) = M.basicOverlaps v1 v2
+  basicUnsafeNew n = MV_Log `liftM` M.basicUnsafeNew n
+  basicUnsafeReplicate n (Exp x) = MV_Log `liftM` M.basicUnsafeReplicate n x
+  basicUnsafeRead (MV_Log v) i = Exp `liftM` M.basicUnsafeRead v i
+  basicUnsafeWrite (MV_Log v) i (Exp x) = M.basicUnsafeWrite v i x
+  basicClear (MV_Log v) = M.basicClear v
+  basicSet (MV_Log v) (Exp x) = M.basicSet v x
+  basicUnsafeCopy (MV_Log v1) (MV_Log v2) = M.basicUnsafeCopy v1 v2
+  basicUnsafeGrow (MV_Log v) n = MV_Log `liftM` M.basicUnsafeGrow v n
+
+instance (RealFloat a, Unbox a) => G.Vector U.Vector (Log a) where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_Log v) = V_Log `liftM` G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Log v) = MV_Log `liftM` G.basicUnsafeThaw v
+  basicLength (V_Log v) = G.basicLength v
+  basicUnsafeSlice i n (V_Log v) = V_Log $ G.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_Log v) i = Exp `liftM` G.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Log mv) (V_Log v) = G.basicUnsafeCopy mv v
+  elemseq _ (Exp x) z = G.elemseq (undefined :: U.Vector a) x z
 
 instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
   toRational (Exp a) = toRational (exp a)
