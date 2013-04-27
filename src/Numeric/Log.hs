@@ -291,7 +291,7 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 --
 -- While for small quantities the naive sum accumulates error,
 --
--- >>> let xs = replicate 40000 (Exp 1e-4) :: [Log Float]
+-- >>> let xs = Prelude.replicate 40000 (Exp 1e-4) :: [Log Float]
 -- >>> Prelude.sum xs
 -- 40001.3
 --
