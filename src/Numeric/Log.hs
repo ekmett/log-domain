@@ -51,6 +51,8 @@ import Generics.Deriving
 import Text.Read as T
 import Text.Show as T
 
+{-# ANN module "HLint: ignore Eta reduce" #-}
+
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
 
