@@ -26,6 +26,7 @@ import Control.Comonad
 import Control.DeepSeq
 import Control.Monad
 import Data.Binary as Binary
+import Data.Bytes.Serial
 import Data.Complex
 import Data.Data
 import Data.Distributive
@@ -75,6 +76,14 @@ instance Serialize a => Serialize (Log a) where
   {-# INLINE put #-}
   get = Exp <$> Serialize.get
   {-# INLINE get #-}
+
+instance Serial a => Serial (Log a) where
+  serialize = serialize . ln
+  deserialize = Exp <$> deserialize
+
+instance Serial1 Log where
+  serializeWith f = f . ln
+  deserializeWith m = Exp <$> m
 
 instance Functor Log where
   fmap f (Exp a) = Exp (f a)
