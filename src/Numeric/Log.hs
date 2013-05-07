@@ -1,9 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 --------------------------------------------------------------------
 -- |
@@ -53,6 +53,7 @@ import Text.Read as T
 import Text.Show as T
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
+
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
