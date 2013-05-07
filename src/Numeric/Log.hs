@@ -1,8 +1,10 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 --------------------------------------------------------------------
 -- |
 -- Copyright :  (c) Edward Kmett 2013
@@ -22,6 +24,7 @@ import Prelude hiding (maximum, sum)
 import Control.Applicative
 import Control.Comonad
 import Control.DeepSeq
+import Control.Monad (liftM)       
 import Data.Binary as Binary
 import Data.Complex
 import Data.Data
@@ -42,6 +45,10 @@ import Foreign.Ptr
 import Foreign.Storable
 import Generics.Deriving
 import Text.Read
+
+import qualified Data.Vector.Unboxed.Base as V
+import qualified Data.Vector.Generic.Mutable as M
+import qualified Data.Vector.Generic as G
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Log { runLog :: a } deriving (Eq,Ord,Data,Typeable,Generic)
@@ -349,3 +356,48 @@ foreign import ccall unsafe "math.h log1p" c_log1p :: Double -> Double
 foreign import ccall unsafe "math.h expm1" c_expm1 :: Double -> Double
 foreign import ccall unsafe "math.h expm1f" c_expm1f :: Float -> Float
 foreign import ccall unsafe "math.h log1pf" c_log1pf :: Float -> Float
+
+-- Unboxed vector instance boilerplate
+newtype instance V.MVector s (Log a) = MV_Log (V.MVector s a)
+newtype instance V.Vector    (Log a) = V_Log  (V.Vector    a)
+instance V.Unbox a => V.Unbox (Log a)
+
+instance (V.Unbox a) => M.MVector V.MVector (Log a) where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_Log v) = M.basicLength v
+  basicUnsafeSlice i n (MV_Log v) = MV_Log $ M.basicUnsafeSlice i n v
+  basicOverlaps (MV_Log v1) (MV_Log v2) = M.basicOverlaps v1 v2
+  basicUnsafeNew n = MV_Log `liftM` M.basicUnsafeNew n
+  basicUnsafeReplicate n (Log x) = MV_Log `liftM` M.basicUnsafeReplicate n x
+  basicUnsafeRead (MV_Log v) i = Log `liftM` M.basicUnsafeRead v i
+  basicUnsafeWrite (MV_Log v) i (Log x) = M.basicUnsafeWrite v i x
+  basicClear (MV_Log v) = M.basicClear v
+  basicSet (MV_Log v) (Log x) = M.basicSet v x
+  basicUnsafeCopy (MV_Log v1) (MV_Log v2) = M.basicUnsafeCopy v1 v2
+  basicUnsafeMove (MV_Log v1) (MV_Log v2) = M.basicUnsafeMove v1 v2
+  basicUnsafeGrow (MV_Log v) n = MV_Log `liftM` M.basicUnsafeGrow v n
+
+instance (V.Unbox a) => G.Vector V.Vector (Log a) where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_Log v) = V_Log `liftM` G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Log v) = MV_Log `liftM` G.basicUnsafeThaw v
+  basicLength (V_Log v) = G.basicLength v
+  basicUnsafeSlice i n (V_Log v) = V_Log $ G.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_Log v) i = Log `liftM` G.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Log mv) (V_Log v) = G.basicUnsafeCopy mv v
+  elemseq _ (Log x) y = G.elemseq (undefined :: V.Vector a) x y
