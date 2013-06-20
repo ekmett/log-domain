@@ -1,3 +1,7 @@
+0.7.1
+-----
+* Marked `Numeric.Log` `Trustworthy`.
+
 0.6
 ---
 * Renamed the data constructor to `Exp` and the field accessor to `ln` per issue #1.
