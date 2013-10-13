@@ -1,3 +1,7 @@
+0.7.2
+-----
+* Dependency bump to allow `comonad` and `semigroupoids` 4.0
+
 0.7.1
 -----
 * Marked `Numeric.Log` `Trustworthy`.
