@@ -195,12 +195,12 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   {-# INLINE (*) #-}
   Exp a + Exp b
     | a == b && isInfinite a && isInfinite b = Exp a
-    | a >= b    = Exp (a + log1p (exp (b - a)))
-    | otherwise = Exp (b + log1p (exp (a - b)))
+    | a >= b    = Exp (a + log1pexp (b - a))
+    | otherwise = Exp (b + log1pexp (a - b))
   {-# INLINE (+) #-}
   Exp a - Exp b
     | a == negInf && b == negInf = Exp negInf
-    | otherwise = Exp (a + log1p (negate (exp (b - a))))
+    | otherwise = Exp (a + log1mexp (b - a))
   {-# INLINE (-) #-}
   signum (Exp a)
     | a == negInf = 0
@@ -375,6 +375,10 @@ class Floating a => Precise a where
   -- | Computes @log(1 + x)@
   --
   -- This is far enough from 0 that the Taylor series is defined.
+  --
+  -- This can provide much more accurate answers for logarithms of numbers close to 1 (x near 0).
+  --
+  -- These arise when working wth log-scale probabilities a lot.
   log1p :: a -> a
 
   -- | The Taylor series for exp(x) is given by
@@ -391,17 +395,41 @@ class Floating a => Precise a where
   -- algebraically to provide the 1 by other means.
   expm1 :: a -> a
 
+  log1pexp :: a -> a
+  log1pexp a = log1p (exp a)
+
+  log1mexp :: a -> a
+  log1mexp a = log1p (negate (exp (negate a)))
+
 instance Precise Double where
   log1p = c_log1p
   {-# INLINE log1p #-}
   expm1 = c_expm1
   {-# INLINE expm1 #-}
+  log1mexp a
+    | a <= log 2 = log (negate (expm1 (negate a)))
+    | otherwise  = log1p (negate (exp (negate a)))
+  {-# INLINE log1mexp #-}
+  log1pexp a
+    | a <= 18   = log1p (exp a)
+    | a <= 100  = a + exp (negate a)
+    | otherwise = a
+  {-# INLINE log1pexp #-}
+
 
 instance Precise Float where
   log1p = c_log1pf
   {-# INLINE log1p #-}
   expm1 = c_expm1f
   {-# INLINE expm1 #-}
+  log1mexp a | a <= log 2 = log (negate (expm1 (negate a)))
+             | otherwise  = log1p (negate (exp (negate a)))
+  {-# INLINE log1mexp #-}
+  log1pexp a
+    | a <= 18   = log1p (exp a)
+    | a <= 100  = a + exp (negate a)
+    | otherwise = a
+  {-# INLINE log1pexp #-}
 
 instance (RealFloat a, Precise a) => Precise (Complex a) where
   expm1 x@(a :+ b)
