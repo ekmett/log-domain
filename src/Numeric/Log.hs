@@ -399,7 +399,7 @@ class Floating a => Precise a where
   log1pexp a = log1p (exp a)
 
   log1mexp :: a -> a
-  log1mexp a = log1p (negate (exp (negate a)))
+  log1mexp a = log1p (negate (exp a))
 
 instance Precise Double where
   log1p = c_log1p
@@ -407,8 +407,8 @@ instance Precise Double where
   expm1 = c_expm1
   {-# INLINE expm1 #-}
   log1mexp a
-    | a <= log 2 = log (negate (expm1 (negate a)))
-    | otherwise  = log1p (negate (exp (negate a)))
+    | a <= log 2 = log (negate (expm1 a))
+    | otherwise  = log1p (negate (exp a))
   {-# INLINE log1mexp #-}
   log1pexp a
     | a <= 18   = log1p (exp a)
@@ -422,8 +422,8 @@ instance Precise Float where
   {-# INLINE log1p #-}
   expm1 = c_expm1f
   {-# INLINE expm1 #-}
-  log1mexp a | a <= log 2 = log (negate (expm1 (negate a)))
-             | otherwise  = log1p (negate (exp (negate a)))
+  log1mexp a | a <= log 2 = log (negate (expm1 a))
+             | otherwise  = log1p (negate (exp a))
   {-# INLINE log1mexp #-}
   log1pexp a
     | a <= 18   = log1p (exp a)
