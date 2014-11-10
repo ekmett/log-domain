@@ -198,6 +198,17 @@ instance (Precise a, RealFloat a) => Num (Log a) where
     | a >= b    = Exp (a + log1pexp (b - a))
     | otherwise = Exp (b + log1pexp (a - b))
   {-# INLINE (+) #-}
+  -- >>> 3 - 1 :: Log Double
+  -- 2.0000000000000004
+  --
+  -- >>> 1 - 3 :: Log Double
+  -- NaN
+  -- 
+  -- >>> 3 - 2 :: Log Float
+  -- 1.0
+  --
+  -- >>> 1 - 3 :: Log Float
+  -- NaN
   Exp a - Exp b
     | a == negInf && b == negInf = Exp negInf
     | otherwise = Exp (a + log1mexp (b - a))
