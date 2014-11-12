@@ -1,3 +1,7 @@
+0.9.3
+-------
+* Fixed subtraction again. For real this time.
+
 0.9.2.1
 -------
 * Support `generic-deriving` 1.7
