@@ -200,7 +200,7 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   {-# INLINE (+) #-}
   Exp a - Exp b
     | a == negInf && b == negInf = Exp negInf
-    | otherwise = Exp (a + log1mexp (b - a))
+    | otherwise = Exp (a + log1mexp (a - b))
   {-# INLINE (-) #-}
   signum (Exp a)
     | a == negInf = 0
