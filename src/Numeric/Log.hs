@@ -188,6 +188,21 @@ negInf :: Fractional a => a
 negInf = -(1/0)
 {-# INLINE negInf #-}
 
+-- | Handle subtraction.
+--
+-- >>> 3 - 1 :: Log Double
+-- 2.0000000000000004
+--
+-- >>> 1 - 3 :: Log Double
+-- NaN
+-- 
+-- >>> 3 - 2 :: Log Float
+-- 1.0
+--
+-- >>> 1 - 3 :: Log Float
+-- NaN
+--
+
 instance (Precise a, RealFloat a) => Num (Log a) where
   Exp a * Exp b
     | isInfinite a && isInfinite b && a == -b = Exp negInf
@@ -399,7 +414,7 @@ class Floating a => Precise a where
   log1pexp a = log1p (exp a)
 
   log1mexp :: a -> a
-  log1mexp a = log1p (negate (exp (negate a)))
+  log1mexp a = log1p (negate (exp a))
 
 instance Precise Double where
   log1p = c_log1p
@@ -407,8 +422,8 @@ instance Precise Double where
   expm1 = c_expm1
   {-# INLINE expm1 #-}
   log1mexp a
-    | a <= log 2 = log (negate (expm1 (negate a)))
-    | otherwise  = log1p (negate (exp (negate a)))
+    | a <= log 2 = log (negate (expm1 a))
+    | otherwise  = log1p (negate (exp a))
   {-# INLINE log1mexp #-}
   log1pexp a
     | a <= 18   = log1p (exp a)
@@ -422,8 +437,8 @@ instance Precise Float where
   {-# INLINE log1p #-}
   expm1 = c_expm1f
   {-# INLINE expm1 #-}
-  log1mexp a | a <= log 2 = log (negate (expm1 (negate a)))
-             | otherwise  = log1p (negate (exp (negate a)))
+  log1mexp a | a <= log 2 = log (negate (expm1 a))
+             | otherwise  = log1p (negate (exp a))
   {-# INLINE log1mexp #-}
   log1pexp a
     | a <= 18   = log1p (exp a)
