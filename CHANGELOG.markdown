@@ -1,3 +1,7 @@
+0.9.1
+-----
+* Fixed subtraction.
+
 0.8
 ---
 * Updated to `comonad` and `semigroupoids` 4.
