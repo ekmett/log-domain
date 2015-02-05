@@ -467,19 +467,19 @@ foreign import ccall unsafe "math.h log1pf" c_log1pf :: Float -> Float
 #else
 
 c_log1p :: Double -> Double
-{-# INLINE [0] c_log1p #-}
+{-# INLINE c_log1p #-}
 c_log1p x = log (1 + x)
 
 c_expm1 :: Double -> Double
-{-# INLINE [0] c_expm1 #-}
+{-# INLINE c_expm1 #-}
 c_expm1 x = exp x - 1
 
 c_expm1f :: Float -> Float
-{-# INLINE [0] c_expm1f #-}
+{-# INLINE c_expm1f #-}
 c_expm1f x = exp x - 1
 
 c_log1pf :: Float -> Float
-{-# INLINE [0] c_log1pf #-}
+{-# INLINE c_log1pf #-}
 c_log1pf x = log (1 + x)
 
 #endif
