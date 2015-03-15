@@ -1,3 +1,9 @@
+0.10
+----
+* `(**)` is now much more accurately defined.
+* We now avoid comparisons for equality with infinities.
+* Fixed a bug in `negate`.
+
 0.9.3
 -------
 * Fixed subtraction again. For real this time.
