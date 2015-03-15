@@ -214,15 +214,14 @@ instance (Precise a, RealFloat a) => Num (Log a) where
     | otherwise = Exp (b + log1pexp (a - b))
   {-# INLINE (+) #-}
   Exp a - Exp b
-    | a == negInf && b == negInf = Exp negInf
+    | isInfinite a && isInfinite b && a < 0 && b < 0 = Exp negInf
     | otherwise = Exp (a + log1mexp (b - a))
   {-# INLINE (-) #-}
   signum (Exp a)
-    | a == negInf = 0
-    | a > negInf  = 1
-    | otherwise   = negInf
+    | isInfinite a && a < 0 = Exp negInf -- 0
+    | otherwise             = Exp 0      -- 1
   {-# INLINE signum #-}
-  negate _ = Exp $ log negInf -- not a number
+  negate _ = Exp negInf
   {-# INLINE negate #-}
   abs = id
   {-# INLINE abs #-}
@@ -233,7 +232,7 @@ instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
   -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
   Exp a / Exp b
     | a == b && isInfinite a && isInfinite b = Exp negInf
-    | a == negInf                            = Exp negInf
+    | isInfinite a && a < 0                  = Exp negInf
     | otherwise                              = Exp (a-b)
   {-# INLINE (/) #-}
   fromRational = Exp . log . fromRational
