@@ -3,6 +3,7 @@
 * `(**)` is now much more accurately defined.
 * We now avoid comparisons for equality with infinities.
 * Fixed a bug in `negate`.
+* On windows we avoid FFI into the math library, and accept less accurate results. (Sorry!)
 
 0.9.3
 -------
