@@ -57,7 +57,7 @@ import Text.Show as T
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
 -- $setup
--- > import Numeric
+-- >>> import Numeric
 
 
 -- | @Log@-domain @Float@ and @Double@ values.
