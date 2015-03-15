@@ -57,7 +57,7 @@ import Text.Show as T
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
 -- $setup
--- >>> let x ~= y = abs ((x-y) / x) < 0.01
+-- >>> let x ~= y = abs ((x-y) / x) < 0.1
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
