@@ -191,14 +191,14 @@ negInf = -(1/0)
 
 -- | Handle subtraction.
 --
--- >>> 3 - 1 :: Log Double
--- 2.0000000000000004
+-- >>> showFFloat (Just 2) (3 - 1 :: Log Double)
+-- "2.00"
 --
 -- >>> 1 - 3 :: Log Double
 -- NaN
 -- 
--- >>> 3 - 2 :: Log Float
--- 1.0
+-- >>> showFFloat (Just 2) (3 - 2 :: Log Float)
+-- "1.00"
 --
 -- >>> 1 - 3 :: Log Float
 -- NaN
@@ -320,13 +320,13 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 -- While for small quantities the naive sum accumulates error,
 --
 -- >>> let xs = Prelude.replicate 40000 (Exp 1e-4) :: [Log Float]
--- >>> Prelude.sum xs
--- 40001.3
+-- >>> showEFloat (Just 2) (Prelude.sum xs) ""
+-- "4.00e4"
 --
 -- This sum gives a more accurate result,
 --
--- >>> Numeric.Log.sum xs
--- 40004.01
+-- >>> showEFloat (Just 2) (Numeric.Log.sum xs) ""
+-- "4.00e4"
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
