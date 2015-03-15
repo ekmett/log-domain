@@ -222,7 +222,7 @@ instance (Precise a, RealFloat a) => Num (Log a) where
     | a > negInf  = 1
     | otherwise   = negInf
   {-# INLINE signum #-}
-  negate _ = negInf
+  negate _ = Exp $ log negInf -- not a number
   {-# INLINE negate #-}
   abs = id
   {-# INLINE abs #-}
