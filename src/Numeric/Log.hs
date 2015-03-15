@@ -57,8 +57,7 @@ import Text.Show as T
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
 -- $setup
--- >>> import Numeric
-
+-- >>> let x ~= y = abs ((x-y) / x) < 0.01
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
@@ -194,18 +193,17 @@ negInf = -(1/0)
 
 -- | Handle subtraction.
 --
--- >>> showFFloat (Just 2) (3 - 1 :: Log Double)
--- "2.00"
+-- >>> (3 - 1 :: Log Double) ~= 2
+-- True
 --
 -- >>> 1 - 3 :: Log Double
 -- NaN
 -- 
--- >>> showFFloat (Just 2) (3 - 2 :: Log Float)
--- "1.00"
+-- >>> (3 - 2 :: Log Float) ~= 1
+-- True
 --
 -- >>> 1 - 3 :: Log Float
 -- NaN
---
 
 instance (Precise a, RealFloat a) => Num (Log a) where
   Exp a * Exp b
@@ -323,13 +321,13 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 -- While for small quantities the naive sum accumulates error,
 --
 -- >>> let xs = Prelude.replicate 40000 (Exp 1e-4) :: [Log Float]
--- >>> showEFloat (Just 2) (Prelude.sum xs) ""
--- "4.00e4"
+-- >>> Prelude.sum xs ~= 4.00e4
+-- True
 --
 -- This sum gives a more accurate result,
 --
--- >>> showEFloat (Just 2) (Numeric.Log.sum xs) ""
--- "4.00e4"
+-- >>> Numeric.Log.sum xs ~= 4.00e4
+-- True
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
