@@ -39,7 +39,7 @@ flag lib-Werror
   default: False
   manual: True
 
-flag useFFI
+flag ffi
   default: True
   manual: True
 
@@ -66,7 +66,7 @@ library
   if flag(lib-Werror)
     ghc-options: -Werror
 
-  if flag(useFFI)
+  if flag(ffi) && !os(windows)
     cpp-options: -D__USE_FFI__
 
   ghc-options: -Wall -fwarn-tabs -O2
