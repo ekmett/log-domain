@@ -9,7 +9,7 @@
 {-# LANGUAGE Trustworthy #-}
 --------------------------------------------------------------------
 -- |
--- Copyright :  (c) Edward Kmett 2013
+-- Copyright :  (c) Edward Kmett 2013-2015
 -- License   :  BSD3
 -- Maintainer:  Edward Kmett <ekmett@gmail.com>
 -- Stability :  experimental
