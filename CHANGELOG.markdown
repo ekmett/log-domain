@@ -1,3 +1,7 @@
+0.10.0.1
+--------
+* Improved the stability and portability of the `doctest` test suite
+
 0.10
 ----
 * `(**)` is now much more accurately defined.
