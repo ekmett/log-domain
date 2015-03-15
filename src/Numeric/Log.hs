@@ -348,6 +348,8 @@ instance (RealFloat a, Precise a) => Floating (Log a) where
   {-# INLINE exp #-}
   log (Exp a) = Exp (log a)
   {-# INLINE log #-}
+  Exp b ** Exp e = Exp (b * exp e)
+  {-# INLINE (**) #-}
   sqrt (Exp a) = Exp (a / 2)
   {-# INLINE sqrt #-}
   logBase (Exp a) (Exp b) = Exp (log (logBase (exp a) (exp b)))
