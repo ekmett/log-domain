@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -457,7 +458,29 @@ instance (RealFloat a, Precise a) => Precise (Complex a) where
     | otherwise = log (1 + x)
   {-# INLINE log1p #-}
 
+#ifdef __USE_FFI__
+
 foreign import ccall unsafe "math.h log1p" c_log1p :: Double -> Double
 foreign import ccall unsafe "math.h expm1" c_expm1 :: Double -> Double
 foreign import ccall unsafe "math.h expm1f" c_expm1f :: Float -> Float
 foreign import ccall unsafe "math.h log1pf" c_log1pf :: Float -> Float
+
+#else
+
+c_log1p :: Double -> Double
+{-# INLINE c_log1p #-}
+c_log1p x = log (1 + x)
+
+c_expm1 :: Double -> Double
+{-# INLINE c_expm1 #-}
+c_expm1 x = exp x - 1
+
+c_expm1f :: Float -> Float
+{-# INLINE c_expm1f #-}
+c_expm1f x = exp x - 1
+
+c_log1pf :: Float -> Float
+{-# INLINE c_log1pf #-}
+c_log1pf x = log (1 + x)
+
+#endif
