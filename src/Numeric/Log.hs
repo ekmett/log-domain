@@ -204,11 +204,98 @@ negInf = -(1/0)
 --
 -- >>> 1 - 3 :: Log Float
 -- NaN
+--
+-- >>> (Exp (1/0)) - (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> 0 - 0 :: Log Double
+-- 0.0
+--
+-- >>> 0 - (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> (Exp (1/0)) - 0.0 :: Log Double
+-- Infinity
+
+
+-- | Handle multiplication.
+--
+-- >>> (3 * 2 :: Log Double) ~= 6
+-- True
+--
+-- >>> 0 * (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> (Exp (1/0)) * (Exp (1/0)) :: Log Double
+-- Infinity
+--
+-- >>> 0 * 0 :: Log Double
+-- 0.0
+--
+-- >>> (Exp (0/0)) * 0 :: Log Double
+-- NaN
+--
+-- >>> (Exp (0/0)) * (Exp (1/0)) :: Log Double
+-- NaN
+
+-- | Handle addition.
+--
+-- >>> (3 + 1 :: Log Double) ~= 4
+-- True
+--
+-- >>> 0 + 0 :: Log Double
+-- 0.0
+--
+-- >>> (Exp (1/0)) + (Exp (1/0)) :: Log Double
+-- Infinity
+--
+-- >>> (Exp (1/0)) + 0 :: Log Double
+-- Infinity
+
+-- | Handle Division
+--
+-- >>> (3 / 2 :: Log Double) ~= 1.5
+-- True
+--
+-- >>> 3 / 0 :: Log Double
+-- Infinity
+--
+-- >>> (Exp (1/0)) / 0 :: Log Double
+-- Infinity
+--
+-- >>> 0 / (Exp (1/0)) :: Log Double
+-- 0.0
+--
+-- >>> (Exp (1/0)) / (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> 0 / 0 :: Log Double
+-- NaN
+
+-- | Handle Negation
+--
+-- >>> ((-3) + 8 :: Log Double) ~= 8
+-- False
+--
+-- >>> (-0) :: Log Double
+-- 0.0
+--
+-- >>> (-(0/0)) :: Log Double
+-- NaN
+
+-- | Handle signum
+--
+-- >>> signum 0 :: Log Double
+-- 0.0
+--
+-- >>> signum 3 :: Log Double
+-- 1.0
+--
+-- >>> signum (Exp (0/0)) :: Log Double
+-- NaN
 
 instance (Precise a, RealFloat a) => Num (Log a) where
-  Exp a * Exp b
-    | isInfinite a && isInfinite b && a == -b = Exp negInf
-    | otherwise = Exp (a + b)
+  Exp a * Exp b = Exp (a + b)
   {-# INLINE (*) #-}
   Exp a + Exp b
     | a == b && isInfinite a && isInfinite b = Exp a
@@ -219,11 +306,14 @@ instance (Precise a, RealFloat a) => Num (Log a) where
     | isInfinite a && isInfinite b && a < 0 && b < 0 = Exp negInf
     | otherwise = Exp (a + log1mexp (b - a))
   {-# INLINE (-) #-}
-  signum (Exp a)
-    | isInfinite a && a < 0 = Exp negInf -- 0
-    | otherwise             = Exp 0      -- 1
+  signum a
+    | a == 0    = Exp negInf -- 0
+    | a > 0     = Exp 0      -- 1
+    | otherwise = Exp (0/0)  -- NaN
   {-# INLINE signum #-}
-  negate _ = Exp negInf
+  negate (Exp a)
+    | isInfinite a && a < 0 = Exp negInf
+    | otherwise             = Exp (0/0)
   {-# INLINE negate #-}
   abs = id
   {-# INLINE abs #-}
@@ -231,11 +321,8 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   {-# INLINE fromInteger #-}
 
 instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
-  -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
-  Exp a / Exp b
-    | a == b && isInfinite a && isInfinite b = Exp negInf
-    | isInfinite a && a < 0                  = Exp negInf
-    | otherwise                              = Exp (a-b)
+  -- n/0 == infinity is handled seamlessly for us, as is 0/0 and infinity/infinity NaNs, and 0/infinity == 0.
+  Exp a / Exp b = Exp (a-b)
   {-# INLINE (/) #-}
   fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
