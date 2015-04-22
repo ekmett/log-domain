@@ -327,6 +327,18 @@ instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
   fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
 
+-- | Handle properFraction
+--
+-- >>> (properFraction 3.5 :: (Integer, Log Double))
+-- (3,0.5)
+--
+-- >>> (properFraction 0.5 :: (Integer, Log Double))
+-- (0,0.5)
+
+instance (Precise a, RealFloat a) => RealFrac (Log a) where
+  properFraction l
+    | ln l < 0  = (0, l)
+    | otherwise = (\(b,a) -> (b, Exp $ log a)) $ properFraction $ exp (ln l)
 
 newtype instance U.MVector s (Log a) = MV_Log (U.MVector s a)
 newtype instance U.Vector    (Log a) = V_Log  (U.Vector    a)
