@@ -31,7 +31,7 @@ import Text.Show as T
 import Data.Functor ((<$>))
 
 -- $setup
--- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-((exp y) * (if nxor sX sY then 1 else (-1)))) / exp x) < 0.01
+-- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-(multSign (nxor sX sY) (exp y))) / exp x) < 0.01
 
 data SignedLog a = SLExp { signSL :: Bool, lnSL :: a} deriving (Data, Typeable, Generic)
 
@@ -40,6 +40,10 @@ negInf = (-1)/0
 
 nan :: Fractional a => a
 nan = 0/0
+
+multSign :: (Num a) => Bool -> a -> a
+multSign True = id
+multSign False = (-1)*
 
 -- | Handles comparisons.
 --
@@ -215,8 +219,55 @@ instance (Precise a, RealFloat a) => Fractional (SignedLog a) where
 -- (-7) % 2
 
 instance (Precise a, RealFloat a, Ord a) => Real (SignedLog a) where
-  toRational (SLExp sA a) = toRational (exp a) * (if sA then 1 else (-1))
+  toRational (SLExp sA a) = multSign sA $ toRational (exp a)
   {-# INLINE toRational #-}
+
+logMap :: Floating a => (a -> a) -> SignedLog a -> SignedLog a
+logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
+  where value = f $ multSign sA $ exp a
+{-# INLINE logMap #-}
+
+instance (RealFloat a, Precise a) => Floating (SignedLog a) where
+  pi = SLExp True (log pi)
+  {-# INLINE pi #-}
+  exp (SLExp sA a) = SLExp True (exp $ multSign sA a)
+  {-# INLINE exp #-}
+  log (SLExp True a) = SLExp (a >= 0) (log $ abs a)
+  log (SLExp False _) = nan
+  {-# INLINE log #-}
+  (SLExp True b) ** (SLExp sE e) = SLExp True (b * exp $ multSign sE e)
+  (SLExp False b) ** (SLExp sE e) = nan -- There are values which should not be nan, such as (-2)^0
+  {-# INLINE (**) #-}
+  sqrt (SLExp True a) = SLExp True (a / 2)
+  sqrt (SLExp False _) = nan
+  {-# INLINE sqrt #-}
+  logBase (SLExp True a) (SLExp True b) = SLExp True (log (logBase (exp a) (exp b)))
+  logBase _ _ = nan -- There are values which should not be nan, such as (logBase 1 (-0))
+  {-# INLINE logBase #-}
+  sin = logMap sin
+  {-# INLINE sin #-}
+  cos = logMap cos
+  {-# INLINE cos #-}
+  tan = logMap tan
+  {-# INLINE tan #-}
+  asin = logMap asin
+  {-# INLINE asin #-}
+  acos = logMap acos
+  {-# INLINE acos #-}
+  atan = logMap atan
+  {-# INLINE atan #-}
+  sinh = logMap sinh
+  {-# INLINE sinh #-}
+  cosh = logMap cosh
+  {-# INLINE cosh #-}
+  tanh = logMap tanh
+  {-# INLINE tanh #-}
+  asinh = logMap asinh
+  {-# INLINE asinh #-}
+  acosh = logMap acosh
+  {-# INLINE acosh #-}
+  atanh = logMap atanh
+  {-# INLINE atanh #-}
 
 
 
