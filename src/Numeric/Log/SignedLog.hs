@@ -43,9 +43,9 @@ nan = 0/0
 
 multSign :: (Num a) => Bool -> a -> a
 multSign True = id
-multSign False = (-1)*
+multSign False = (*) (-1)
 
--- | Handles comparisons.
+-- $SignedLogCompTests
 --
 -- >>> (-7) < (3 :: SignedLog Double)
 -- True
@@ -61,7 +61,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
   compare (SLExp _ a) (SLExp _ b) | a == b && a == negInf = EQ
   compare (SLExp sA a) (SLExp sB b) = mappend (compare sA sB) $ compare a b
 
--- | Show
+-- $SignedLogShowTests
 --
 -- >>> show (-0 :: SignedLog Double)
 -- "0.0"
@@ -81,7 +81,9 @@ instance (Precise a, RealFloat a, Fractional a, Read a) => Read (SignedLog a) wh
 nxor :: Bool -> Bool -> Bool
 nxor = (==)
 
--- | Handle subtraction.
+-- $SignedLogNumTests
+--
+-- Subtraction
 --
 -- >>> (3 - 1 :: SignedLog Double) ~= 2
 -- True
@@ -106,9 +108,8 @@ nxor = (==)
 --
 -- >>> (SLExp True (1/0)) - 0.0 :: SignedLog Double
 -- Infinity
-
-
--- | Handle multiplication.
+--
+-- Multiplication
 --
 -- >>> (3 * 2 :: SignedLog Double) ~= 6
 -- True
@@ -127,8 +128,8 @@ nxor = (==)
 --
 -- >>> (SLExp True (0/0)) * (SLExp True (1/0)) :: SignedLog Double
 -- NaN
-
--- | Handle addition.
+--
+-- Addition
 --
 -- >>> (3 + 1 :: SignedLog Double) ~= 4
 -- True
@@ -141,8 +142,8 @@ nxor = (==)
 --
 -- >>> (SLExp True (1/0)) + 0 :: SignedLog Double
 -- Infinity
-
--- | Handle Division
+--
+-- Division
 --
 -- >>> (3 / 2 :: SignedLog Double) ~= 1.5
 -- True
@@ -161,8 +162,8 @@ nxor = (==)
 --
 -- >>> 0 / 0 :: SignedLog Double
 -- NaN
-
--- | Handle Negation
+--
+-- Negation
 --
 -- >>> ((-3) + 8 :: SignedLog Double) ~= 8
 -- False
@@ -172,8 +173,8 @@ nxor = (==)
 --
 -- >>> (-(0/0)) :: SignedLog Double
 -- NaN
-
--- | Handle signum
+--
+-- Signum
 --
 -- >>> signum 0 :: SignedLog Double
 -- 0.0
@@ -183,7 +184,6 @@ nxor = (==)
 --
 -- >>> signum (SLExp True (0/0)) :: SignedLog Double
 -- NaN
-
 
 instance (Precise a, RealFloat a) => Num (SignedLog a) where
   (SLExp sA a) * (SLExp sB b) = SLExp (nxor sA sB) (a+b)
@@ -214,15 +214,16 @@ instance (Precise a, RealFloat a) => Fractional (SignedLog a) where
   fromRational a = SLExp (a >= 0) $ log $ fromRational $ abs a
   {-# INLINE fromRational #-}
 
--- |
+-- $SignedLogToRationalTest
+--
 -- >>> (toRational (-3.5 :: SignedLog Double))
 -- (-7) % 2
 
 instance (Precise a, RealFloat a, Ord a) => Real (SignedLog a) where
-  toRational (SLExp sA a) = multSign sA $ toRational (exp a)
+  toRational (SLExp sA a) = toRational $ multSign sA $ exp a
   {-# INLINE toRational #-}
 
-logMap :: Floating a => (a -> a) -> SignedLog a -> SignedLog a
+logMap :: (Floating a, Ord a) => (a -> a) -> SignedLog a -> SignedLog a
 logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
   where value = f $ multSign sA $ exp a
 {-# INLINE logMap #-}
@@ -230,19 +231,20 @@ logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
 instance (RealFloat a, Precise a) => Floating (SignedLog a) where
   pi = SLExp True (log pi)
   {-# INLINE pi #-}
-  exp (SLExp sA a) = SLExp True (exp $ multSign sA a)
+  exp (SLExp sA a) = SLExp True (multSign sA $ exp a)
   {-# INLINE exp #-}
   log (SLExp True a) = SLExp (a >= 0) (log $ abs a)
   log (SLExp False _) = nan
   {-# INLINE log #-}
-  (SLExp True b) ** (SLExp sE e) = SLExp True (b * exp $ multSign sE e)
-  (SLExp False b) ** (SLExp sE e) = nan -- There are values which should not be nan, such as (-2)^0
+  (SLExp sB b) ** (SLExp sE e) | sB || e == 0 || isInfinite e = SLExp sB (b * (multSign sE $ exp e))
+  _ ** _ = nan
   {-# INLINE (**) #-}
   sqrt (SLExp True a) = SLExp True (a / 2)
   sqrt (SLExp False _) = nan
   {-# INLINE sqrt #-}
-  logBase (SLExp True a) (SLExp True b) = SLExp True (log (logBase (exp a) (exp b)))
-  logBase _ _ = nan -- There are values which should not be nan, such as (logBase 1 (-0))
+  logBase slA@(SLExp _ a) slB@(SLExp _ b) | slA >= 0 && slB >= 0 = SLExp (value >= 0) (log $ abs value)
+    where value = logBase (exp a) (exp b)
+  logBase _ _ = nan
   {-# INLINE logBase #-}
   sin = logMap sin
   {-# INLINE sin #-}
