@@ -33,6 +33,7 @@ import Data.Functor ((<$>))
 -- $setup
 -- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-(multSign (nxor sX sY) (exp y))) / exp x) < 0.01
 
+-- | @Log@-domain @Float@ and @Double@ values, with a sign bit.
 data SignedLog a = SLExp { signSL :: Bool, lnSL :: a} deriving (Data, Typeable, Generic)
 
 negInf :: Fractional a => a
