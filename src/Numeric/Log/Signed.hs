@@ -17,7 +17,7 @@
 -- Portability: non-portable
 --
 --------------------------------------------------------------------
-module Numeric.Log.SignedLog
+module Numeric.Log.Signed
        ( SignedLog(..)
        ) where
 
