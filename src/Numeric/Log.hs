@@ -191,7 +191,9 @@ negInf :: Fractional a => a
 negInf = -(1/0)
 {-# INLINE negInf #-}
 
--- | Handle subtraction.
+-- $LogNumTests
+--
+-- Subtraction
 --
 -- >>> (3 - 1 :: Log Double) ~= 2
 -- True
@@ -216,9 +218,8 @@ negInf = -(1/0)
 --
 -- >>> (Exp (1/0)) - 0.0 :: Log Double
 -- Infinity
-
-
--- | Handle multiplication.
+--
+-- Multiplication
 --
 -- >>> (3 * 2 :: Log Double) ~= 6
 -- True
@@ -237,8 +238,8 @@ negInf = -(1/0)
 --
 -- >>> (Exp (0/0)) * (Exp (1/0)) :: Log Double
 -- NaN
-
--- | Handle addition.
+--
+-- Addition
 --
 -- >>> (3 + 1 :: Log Double) ~= 4
 -- True
@@ -251,8 +252,8 @@ negInf = -(1/0)
 --
 -- >>> (Exp (1/0)) + 0 :: Log Double
 -- Infinity
-
--- | Handle Division
+--
+-- Division
 --
 -- >>> (3 / 2 :: Log Double) ~= 1.5
 -- True
@@ -271,8 +272,8 @@ negInf = -(1/0)
 --
 -- >>> 0 / 0 :: Log Double
 -- NaN
-
--- | Handle Negation
+--
+-- Negation
 --
 -- >>> ((-3) + 8 :: Log Double) ~= 8
 -- False
@@ -282,8 +283,8 @@ negInf = -(1/0)
 --
 -- >>> (-(0/0)) :: Log Double
 -- NaN
-
--- | Handle signum
+--
+-- Signum
 --
 -- >>> signum 0 :: Log Double
 -- 0.0
@@ -327,7 +328,7 @@ instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
   fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
 
--- | Handle properFraction
+-- $LogProperFractionTests
 --
 -- >>> (properFraction 3.5 :: (Integer, Log Double))
 -- (3,0.5)
