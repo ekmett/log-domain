@@ -272,9 +272,15 @@ instance (RealFloat a, Precise a) => Floating (SignedLog a) where
   atanh = logMap atanh
   {-# INLINE atanh #-}
 
+-- $SignedLogProperFractionTests
+--
+-- >>> (properFraction (-1.5) :: (Integer, SignedLog Double))
+-- (-1,-0.5)
+--
+-- >>> (properFraction (-0.5) :: (Integer, SignedLog Double))
+-- (0,-0.5)
 
-
-
-
-
-
+instance (Precise a, RealFloat a) => RealFrac (SignedLog a) where
+  properFraction slX@(SLExp sX x)
+    | x < 0     = (0, slX)
+    | otherwise = (\(b,a) -> (b, SLExp sX $ log $ abs a)) $ properFraction $ multSign sX $ exp x
