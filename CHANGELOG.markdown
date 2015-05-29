@@ -1,3 +1,7 @@
+0.10.1
+------
+* `semigroupoids` 5 support.
+
 0.10.0.1
 --------
 * Improved the stability and portability of the `doctest` test suite
