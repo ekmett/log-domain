@@ -1,3 +1,7 @@
+0.10.1.1
+--------
+* Compiles warning-free on GHC 7.10
+
 0.10.1
 ------
 * `semigroupoids` 5 support.
