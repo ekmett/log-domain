@@ -23,7 +23,9 @@ module Numeric.Log
   ) where
 
 import Prelude hiding (maximum, sum)
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Comonad
 import Control.DeepSeq
 import Control.Monad
@@ -39,12 +41,16 @@ import Data.Hashable
 import Data.Hashable.Extras
 import Data.Int
 import Data.List as List hiding (sum)
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import Data.SafeCopy
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
+#if __GLASGOW_HASKELL__ < 710
 import Data.Traversable
+#endif
 import Data.Vector.Unboxed as U hiding (sum)
 import Data.Vector.Generic as G hiding (sum)
 import Data.Vector.Generic.Mutable as M

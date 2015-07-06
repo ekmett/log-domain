@@ -22,13 +22,17 @@ module Numeric.Log.Signed
        ) where
 
 import Numeric.Log (Precise(..))
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid (Monoid(..))
+#endif
 import Data.Data (Data(..))
 import Generics.Deriving (Generic(..))
 import Data.Typeable (Typeable)
 import Text.Read as T
 import Text.Show as T
+#if __GLASGOW_HASKELL__ < 710
 import Data.Functor ((<$>))
+#endif
 
 -- $setup
 -- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-(multSign (nxor sX sY) (exp y))) / exp x) < 0.01
