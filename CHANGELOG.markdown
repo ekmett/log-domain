@@ -1,3 +1,7 @@
+0.10.2
+------
+* Add `generic-deriving` 1.8 support. We also no longer incur a `generic-deriving` dependency at all on GHC 7.6+
+
 0.10.1.1
 --------
 * Compiles warning-free on GHC 7.10
