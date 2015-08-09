@@ -1,7 +1,7 @@
 log
 ===
 
-[![Build Status](https://secure.travis-ci.org/ekmett/log-domain.png?branch=master)](http://travis-ci.org/ekmett/log-domain)
+[![Hackage](https://img.shields.io/hackage/v/log-domain.svg)](https://hackage.haskell.org/package/log-domain) [![Build Status](https://secure.travis-ci.org/ekmett/log-domain.png?branch=master)](http://travis-ci.org/ekmett/log-domain
 
 > What rolls down stairs alone or in pairs  
 > Rolls over your neighbor's dog?  
