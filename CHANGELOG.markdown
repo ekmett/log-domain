@@ -1,3 +1,7 @@
+0.10.2.1
+--------
+* Add `vector` 0.11 support.
+
 0.10.2
 ------
 * Add `generic-deriving` 1.8 support. We also no longer incur a `generic-deriving` dependency at all on GHC 7.6+
