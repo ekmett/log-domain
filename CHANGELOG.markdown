@@ -1,3 +1,26 @@
+0.10.2
+------
+* Add `generic-deriving` 1.8 support. We also no longer incur a `generic-deriving` dependency at all on GHC 7.6+
+
+0.10.1.1
+--------
+* Compiles warning-free on GHC 7.10
+
+0.10.1
+------
+* `semigroupoids` 5 support.
+
+0.10.0.1
+--------
+* Improved the stability and portability of the `doctest` test suite
+
+0.10
+----
+* `(**)` is now much more accurately defined.
+* We now avoid comparisons for equality with infinities.
+* Fixed a bug in `negate`.
+* On windows we avoid FFI into the math library, and accept less accurate results. (Sorry!)
+
 0.9.3
 -------
 * Fixed subtraction again. For real this time.

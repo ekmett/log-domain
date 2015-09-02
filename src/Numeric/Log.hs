@@ -9,7 +9,7 @@
 {-# LANGUAGE Trustworthy #-}
 --------------------------------------------------------------------
 -- |
--- Copyright :  (c) Edward Kmett 2013
+-- Copyright :  (c) Edward Kmett 2013-2015
 -- License   :  BSD3
 -- Maintainer:  Edward Kmett <ekmett@gmail.com>
 -- Stability :  experimental
@@ -23,7 +23,9 @@ module Numeric.Log
   ) where
 
 import Prelude hiding (maximum, sum)
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Comonad
 import Control.DeepSeq
 import Control.Monad
@@ -39,23 +41,33 @@ import Data.Hashable
 import Data.Hashable.Extras
 import Data.Int
 import Data.List as List hiding (sum)
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import Data.SafeCopy
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
+#if __GLASGOW_HASKELL__ < 710
 import Data.Traversable
+#endif
 import Data.Vector.Unboxed as U hiding (sum)
 import Data.Vector.Generic as G hiding (sum)
 import Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
+#if __GLASGOW_HASKELL__ < 706
 import Generics.Deriving
+#else
+import GHC.Generics
+#endif
 import Text.Read as T
 import Text.Show as T
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
+-- $setup
+-- >>> let Exp x ~= Exp y = abs ((exp x-exp y) / exp x) < 0.01
 
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
@@ -189,25 +201,112 @@ negInf :: Fractional a => a
 negInf = -(1/0)
 {-# INLINE negInf #-}
 
--- | Handle subtraction.
+-- $LogNumTests
 --
--- >>> 3 - 1 :: Log Double
--- 2.0000000000000004
+-- Subtraction
+--
+-- >>> (3 - 1 :: Log Double) ~= 2
+-- True
 --
 -- >>> 1 - 3 :: Log Double
 -- NaN
 -- 
--- >>> 3 - 2 :: Log Float
--- 1.0
+-- >>> (3 - 2 :: Log Float) ~= 1
+-- True
 --
 -- >>> 1 - 3 :: Log Float
 -- NaN
 --
+-- >>> (Exp (1/0)) - (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> 0 - 0 :: Log Double
+-- 0.0
+--
+-- >>> 0 - (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> (Exp (1/0)) - 0.0 :: Log Double
+-- Infinity
+--
+-- Multiplication
+--
+-- >>> (3 * 2 :: Log Double) ~= 6
+-- True
+--
+-- >>> 0 * (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> (Exp (1/0)) * (Exp (1/0)) :: Log Double
+-- Infinity
+--
+-- >>> 0 * 0 :: Log Double
+-- 0.0
+--
+-- >>> (Exp (0/0)) * 0 :: Log Double
+-- NaN
+--
+-- >>> (Exp (0/0)) * (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- Addition
+--
+-- >>> (3 + 1 :: Log Double) ~= 4
+-- True
+--
+-- >>> 0 + 0 :: Log Double
+-- 0.0
+--
+-- >>> (Exp (1/0)) + (Exp (1/0)) :: Log Double
+-- Infinity
+--
+-- >>> (Exp (1/0)) + 0 :: Log Double
+-- Infinity
+--
+-- Division
+--
+-- >>> (3 / 2 :: Log Double) ~= 1.5
+-- True
+--
+-- >>> 3 / 0 :: Log Double
+-- Infinity
+--
+-- >>> (Exp (1/0)) / 0 :: Log Double
+-- Infinity
+--
+-- >>> 0 / (Exp (1/0)) :: Log Double
+-- 0.0
+--
+-- >>> (Exp (1/0)) / (Exp (1/0)) :: Log Double
+-- NaN
+--
+-- >>> 0 / 0 :: Log Double
+-- NaN
+--
+-- Negation
+--
+-- >>> ((-3) + 8 :: Log Double) ~= 8
+-- False
+--
+-- >>> (-0) :: Log Double
+-- 0.0
+--
+-- >>> (-(0/0)) :: Log Double
+-- NaN
+--
+-- Signum
+--
+-- >>> signum 0 :: Log Double
+-- 0.0
+--
+-- >>> signum 3 :: Log Double
+-- 1.0
+--
+-- >>> signum (Exp (0/0)) :: Log Double
+-- NaN
 
 instance (Precise a, RealFloat a) => Num (Log a) where
-  Exp a * Exp b
-    | isInfinite a && isInfinite b && a == -b = Exp negInf
-    | otherwise = Exp (a + b)
+  Exp a * Exp b = Exp (a + b)
   {-# INLINE (*) #-}
   Exp a + Exp b
     | a == b && isInfinite a && isInfinite b = Exp a
@@ -215,15 +314,17 @@ instance (Precise a, RealFloat a) => Num (Log a) where
     | otherwise = Exp (b + log1pexp (a - b))
   {-# INLINE (+) #-}
   Exp a - Exp b
-    | a == negInf && b == negInf = Exp negInf
+    | isInfinite a && isInfinite b && a < 0 && b < 0 = Exp negInf
     | otherwise = Exp (a + log1mexp (b - a))
   {-# INLINE (-) #-}
-  signum (Exp a)
-    | a == negInf = 0
-    | a > negInf  = 1
-    | otherwise   = negInf
+  signum a
+    | a == 0    = Exp negInf -- 0
+    | a > 0     = Exp 0      -- 1
+    | otherwise = Exp (0/0)  -- NaN
   {-# INLINE signum #-}
-  negate _ = Exp $ log negInf -- not a number
+  negate (Exp a)
+    | isInfinite a && a < 0 = Exp negInf
+    | otherwise             = Exp (0/0)
   {-# INLINE negate #-}
   abs = id
   {-# INLINE abs #-}
@@ -231,15 +332,24 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   {-# INLINE fromInteger #-}
 
 instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
-  -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
-  Exp a / Exp b
-    | a == b && isInfinite a && isInfinite b = Exp negInf
-    | a == negInf                            = Exp negInf
-    | otherwise                              = Exp (a-b)
+  -- n/0 == infinity is handled seamlessly for us, as is 0/0 and infinity/infinity NaNs, and 0/infinity == 0.
+  Exp a / Exp b = Exp (a-b)
   {-# INLINE (/) #-}
   fromRational = Exp . log . fromRational
   {-# INLINE fromRational #-}
 
+-- $LogProperFractionTests
+--
+-- >>> (properFraction 3.5 :: (Integer, Log Double))
+-- (3,0.5)
+--
+-- >>> (properFraction 0.5 :: (Integer, Log Double))
+-- (0,0.5)
+
+instance (Precise a, RealFloat a) => RealFrac (Log a) where
+  properFraction l
+    | ln l < 0  = (0, l)
+    | otherwise = (\(b,a) -> (b, Exp $ log a)) $ properFraction $ exp (ln l)
 
 newtype instance U.MVector s (Log a) = MV_Log (U.MVector s a)
 newtype instance U.Vector    (Log a) = V_Log  (U.Vector    a)
@@ -321,13 +431,13 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 -- While for small quantities the naive sum accumulates error,
 --
 -- >>> let xs = Prelude.replicate 40000 (Exp 1e-4) :: [Log Float]
--- >>> Prelude.sum xs
--- 40001.3
+-- >>> Prelude.sum xs ~= 4.00e4
+-- True
 --
 -- This sum gives a more accurate result,
 --
--- >>> Numeric.Log.sum xs
--- 40004.01
+-- >>> Numeric.Log.sum xs ~= 4.00e4
+-- True
 --
 -- /NB:/ This does require two passes over the data.
 sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
@@ -349,6 +459,8 @@ instance (RealFloat a, Precise a) => Floating (Log a) where
   {-# INLINE exp #-}
   log (Exp a) = Exp (log a)
   {-# INLINE log #-}
+  Exp b ** Exp e = Exp (b * exp e)
+  {-# INLINE (**) #-}
   sqrt (Exp a) = Exp (a / 2)
   {-# INLINE sqrt #-}
   logBase (Exp a) (Exp b) = Exp (log (logBase (exp a) (exp b)))
