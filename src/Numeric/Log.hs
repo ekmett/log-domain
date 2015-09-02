@@ -365,7 +365,9 @@ instance (RealFloat a, Unbox a) => M.MVector U.MVector (Log a) where
   {-# INLINE basicUnsafeRead #-}
   {-# INLINE basicUnsafeWrite #-}
   {-# INLINE basicClear #-}
+#if MIN_VERSION_vector(0,11,0)
   {-# INLINE basicInitialize #-}
+#endif
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
@@ -377,7 +379,9 @@ instance (RealFloat a, Unbox a) => M.MVector U.MVector (Log a) where
   basicUnsafeRead (MV_Log v) i = Exp `liftM` M.basicUnsafeRead v i
   basicUnsafeWrite (MV_Log v) i (Exp x) = M.basicUnsafeWrite v i x
   basicClear (MV_Log v) = M.basicClear v
+#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_Log v) = M.basicInitialize v
+#endif
   basicSet (MV_Log v) (Exp x) = M.basicSet v x
   basicUnsafeCopy (MV_Log v1) (MV_Log v2) = M.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_Log v) n = MV_Log `liftM` M.basicUnsafeGrow v n
