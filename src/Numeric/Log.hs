@@ -72,7 +72,23 @@ import Text.Show as T
 -- | @Log@-domain @Float@ and @Double@ values.
 newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
 
-deriveSafeCopy 1 'base ''Log
+--deriveSafeCopy 1 'base ''Log
+
+instance SafeCopy a => SafeCopy (Log a) where
+      putCopy (Exp arg_afqB)
+        = contain
+            (do { safePut_a_afqC <- getSafePut;
+                  safePut_a_afqC arg_afqB;
+                  return () })
+      getCopy
+        = contain
+            (label
+               "Numeric.Log.Log:"
+               (do { safeGet_a_afqD <- getSafeGet;
+                     ((return Exp) <*> safeGet_a_afqD) }))
+      version = 1
+      kind = base
+      errorTypeName _ = "Numeric.Log.Log"
 
 instance (Floating a, Show a) => Show (Log a) where
   showsPrec d (Exp a) = T.showsPrec d (exp a)
