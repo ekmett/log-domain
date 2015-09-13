@@ -1,3 +1,8 @@
+0.10.3
+------
+* Work around an issue with `safecopy` on GHC 7.10
+* Changed the repository link to my `ekmett` github account from `analytics`.
+
 0.10.2.1
 --------
 * Add `vector` 0.11 support.
