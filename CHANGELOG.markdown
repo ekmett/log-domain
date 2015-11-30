@@ -1,3 +1,7 @@
+0.10.3.1
+--------
+* Support `safecopy` 0.9
+
 0.10.3
 ------
 * Work around an issue with `safecopy` on GHC 7.10

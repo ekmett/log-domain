@@ -1,6 +1,6 @@
 name:          log-domain
 category:      Numeric
-version:       0.10.3
+version:       0.10.3.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -36,10 +36,6 @@ flag test-doctests
   default: True
   manual: True
 
-flag lib-Werror
-  default: False
-  manual: True
-
 flag ffi
   default: True
   manual: True
@@ -49,7 +45,7 @@ library
     base                      >= 4.3      && < 5,
     binary                    >= 0.5      && < 0.8,
     bytes                     >= 0.7      && < 1,
-    cereal                    >= 0.3.5    && < 0.5,
+    cereal                    >= 0.3.5    && < 0.6,
     comonad                   >= 4        && < 5,
     deepseq                   >= 1.3      && < 1.5,
     distributive              >= 0.3      && < 1,
@@ -57,7 +53,7 @@ library
     hashable-extras           >= 0.2      && < 1,
     semigroupoids             >= 4        && < 6,
     semigroups                >= 0.8.4    && < 1,
-    safecopy                  >= 0.8.1    && < 0.9,
+    safecopy                  >= 0.8.1    && < 0.10,
     vector                    >= 0.9      && < 0.12
 
   exposed-modules:
@@ -65,9 +61,6 @@ library
 
   if impl(ghc < 7.6)
     build-depends: generic-deriving >= 1.4 && < 1.9
-
-  if flag(lib-Werror)
-    ghc-options: -Werror
 
   if flag(ffi) && !os(windows)
     cpp-options: -D__USE_FFI__
@@ -92,6 +85,3 @@ test-suite doctests
       generic-deriving,
       semigroups     >= 0.9,
       simple-reflect >= 0.3.1
-
-  if impl(ghc<7.6.1) && flag(lib-Werror)
-    ghc-options: -Werror
