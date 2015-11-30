@@ -189,7 +189,7 @@ instance Bind Log where
   {-# INLINE (>>-) #-}
 
 instance Monad Log where
-  return = Exp
+  return = pure
   {-# INLINE return #-}
   Exp a >>= f = f a
   {-# INLINE (>>=) #-}
