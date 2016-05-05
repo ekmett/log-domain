@@ -530,6 +530,7 @@ class Floating a => Precise a where
   --
   -- These arise when working wth log-scale probabilities a lot.
   log1p :: a -> a
+  log1p x = log $ 1 + x
 
   -- | The Taylor series for exp(x) is given by
   --
@@ -544,6 +545,7 @@ class Floating a => Precise a where
   -- which can afford you a great deal of additional precision if you move things around
   -- algebraically to provide the 1 by other means.
   expm1 :: a -> a
+  expm1 x = exp x - 1
 
   log1pexp :: a -> a
   log1pexp a = log1p (exp a)
@@ -590,6 +592,8 @@ instance (RealFloat a, Precise a) => Precise (Complex a) where
     | abs a < 0.5 && abs b < 0.5, u <- 2*a+a*a+b*b = log1p (u/(1+sqrt (u+1))) :+ atan2 (1 + a) b
     | otherwise = log (1 + x)
   {-# INLINE log1p #-}
+
+instance (RealFloat a, Precise a) => Precise (Log a) where
 
 #ifdef __USE_FFI__
 
