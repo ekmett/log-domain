@@ -38,7 +38,7 @@ import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
-import Data.Hashable.Extras
+import Data.Hashable.Lifted
 import Data.Int
 import Data.List as List hiding (sum)
 #if __GLASGOW_HASKELL__ < 710
@@ -120,7 +120,9 @@ instance Hashable a => Hashable (Log a) where
   hashWithSalt i (Exp a) = hashWithSalt i a
   {-# INLINE hashWithSalt #-}
 
-instance Hashable1 Log
+instance Hashable1 Log where
+  liftHashWithSalt hws i (Exp a) = hws i a
+  {-# INLINE liftHashWithSalt #-}
 
 instance Storable a => Storable (Log a) where
   sizeOf = sizeOf . ln

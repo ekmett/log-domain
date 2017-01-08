@@ -1,3 +1,9 @@
+0.11
+----
+* Replace use of `Hashable1` from `hashable-extras` in favor of `Hashable` from
+  `hashable-1.2.5.0`. As a result, the `hashable-extras` dependency has been removed.
+* Remove `generic-deriving` dependency
+
 0.10.3.1
 --------
 * Support `safecopy` 0.9
