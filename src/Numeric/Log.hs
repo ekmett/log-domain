@@ -56,11 +56,7 @@ import Data.Vector.Generic as G hiding (sum)
 import Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
-#if __GLASGOW_HASKELL__ < 706
-import Generics.Deriving
-#else
 import GHC.Generics
-#endif
 import Text.Read as T
 import Text.Show as T
 

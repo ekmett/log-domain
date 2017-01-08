@@ -26,11 +26,7 @@ import Numeric.Log (Precise(..))
 import Data.Monoid (Monoid(..))
 #endif
 import Data.Data (Data(..))
-#if __GLASGOW_HASKELL__ < 706
-import Generics.Deriving (Generic(..))
-#else
 import GHC.Generics (Generic(..))
-#endif
 import Data.Typeable (Typeable)
 import Text.Read as T
 import Text.Show as T

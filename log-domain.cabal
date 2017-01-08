@@ -42,7 +42,7 @@ flag ffi
 
 library
   build-depends:
-    base                      >= 4.3      && < 5,
+    base                      >= 4.5      && < 5,
     binary                    >= 0.5      && < 0.9,
     bytes                     >= 0.7      && < 1,
     cereal                    >= 0.3.5    && < 0.6,
@@ -60,7 +60,7 @@ library
     Numeric.Log Numeric.Log.Signed
 
   if impl(ghc < 7.6)
-    build-depends: generic-deriving >= 1.4 && < 1.12
+    build-depends: ghc-prim
 
   if flag(ffi) && !os(windows)
     cpp-options: -D__USE_FFI__
