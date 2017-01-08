@@ -2,6 +2,8 @@
 ----
 * Replace use of `Hashable1` from `hashable-extras` in favor of `Hashable` from
   `hashable-1.2.5.0`. As a result, the `hashable-extras` dependency has been removed.
+* On Windows, we now use the FFI to link against the C math library if building with
+  GHC 8.0 or later, which features a much improved runtime linker story.
 * Remove `generic-deriving` dependency
 
 0.10.3.1

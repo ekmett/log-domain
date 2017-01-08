@@ -61,7 +61,7 @@ library
   if impl(ghc < 7.6)
     build-depends: ghc-prim
 
-  if flag(ffi) && !os(windows)
+  if flag(ffi) && !(os(windows) && !impl(ghc >= 8.0))
     cpp-options: -D__USE_FFI__
 
   ghc-options: -Wall -fwarn-tabs -O2
