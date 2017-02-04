@@ -29,7 +29,13 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: git://github.com/analytics/log-domain.git
+  location: https://github.com/analytics/log-domain
+
+custom-setup
+  setup-depends:
+    base          >= 4 && < 5,
+    Cabal,
+    cabal-doctest >= 1 && < 1.1
 
 -- You can disable the doctests test suite with -f-test-doctests
 flag test-doctests
@@ -78,9 +84,7 @@ test-suite doctests
   else
     build-depends:
       base,
-      directory      >= 1.0,
-      doctest        >= 0.9.1,
-      filepath,
+      doctest        >= 0.11.1 && < 0.12,
       generic-deriving,
       semigroups     >= 0.9,
       simple-reflect >= 0.3.1
