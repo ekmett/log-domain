@@ -276,6 +276,8 @@ instance (RealFloat a, Precise a) => Floating (SignedLog a) where
   atanh = logMap atanh
   {-# INLINE atanh #-}
 
+instance (RealFloat a, Precise a) => Precise (SignedLog a) where
+
 -- $SignedLogProperFractionTests
 --
 -- >>> (properFraction (-1.5) :: (Integer, SignedLog Double))
