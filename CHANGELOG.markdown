@@ -1,3 +1,8 @@
+0.12
+----
+* Drop `safecopy` support
+* Removed some unused constraints.
+
 0.11.2
 ------
 * Support `doctest-0.12`
