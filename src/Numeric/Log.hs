@@ -38,12 +38,11 @@ import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Hashable
-import Data.Hashable.Extras
+import Data.Hashable.Lifted
 import Data.Int
 import Data.List as List hiding (sum)
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#endif
+import Data.List.NonEmpty (NonEmpty(..))
+import Data.Semigroup
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
@@ -55,11 +54,7 @@ import Data.Vector.Generic as G hiding (sum)
 import Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
-#if __GLASGOW_HASKELL__ < 706
-import Generics.Deriving
-#else
 import GHC.Generics
-#endif
 import Text.Read as T
 import Text.Show as T
 
@@ -105,7 +100,9 @@ instance Hashable a => Hashable (Log a) where
   hashWithSalt i (Exp a) = hashWithSalt i a
   {-# INLINE hashWithSalt #-}
 
-instance Hashable1 Log
+instance Hashable1 Log where
+  liftHashWithSalt hws i (Exp a) = hws i a
+  {-# INLINE liftHashWithSalt #-}
 
 instance Storable a => Storable (Log a) where
   sizeOf = sizeOf . ln
@@ -404,20 +401,26 @@ instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
 
 data Acc1 a = Acc1 {-# UNPACK #-} !Int64 !a
 
-instance (Precise a, RealFloat a) => Monoid (Log a) where
-  mempty  = Exp negInf
-  {-# INLINE mempty #-}
-  mappend = (+)
-  {-# INLINE mappend #-}
-  mconcat [] = 0
-  mconcat (Exp z:zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
+instance (Precise a, RealFloat a) => Semigroup (Log a) where
+  (<>) = (+)
+  {-# INLINE (<>) #-}
+  sconcat (Exp z :| zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
     Acc1 nm1 a
       | isInfinite a -> a
       | otherwise    -> a + log1p (List.foldl' (step2 a) 0 zs + fromIntegral nm1)
     where
       step1 (Acc1 n y) (Exp x) = Acc1 (n + 1) (max x y)
       step2 a r (Exp x) = r + expm1 (x - a)
-  {-# INLINE mconcat #-}
+  {-# INLINE sconcat #-}
+
+instance (Precise a, RealFloat a) => Monoid (Log a) where
+  mempty  = Exp negInf
+  {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+#endif
+  mconcat [] = 0
+  mconcat (x:xs) = sconcat (x :| xs)
 
 logMap :: Floating a => (a -> a) -> Log a -> Log a
 logMap f = Exp . log . f . exp . ln
