@@ -80,7 +80,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 instance (Show a, RealFloat a, Eq a, Fractional a) => Show (SignedLog a) where
   showsPrec d (SLExp s a) = (if not s && a /= negInf && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
 
-instance (Precise a, RealFloat a, Fractional a, Read a) => Read (SignedLog a) where
+instance (Precise a, RealFloat a, Read a) => Read (SignedLog a) where
   readPrec = (realToFrac :: a -> SignedLog a) <$> step T.readPrec
 
 nxor :: Bool -> Bool -> Bool

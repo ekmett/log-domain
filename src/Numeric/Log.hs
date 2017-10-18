@@ -325,7 +325,7 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   fromInteger = Exp . log . fromInteger
   {-# INLINE fromInteger #-}
 
-instance (Precise a, RealFloat a, Eq a) => Fractional (Log a) where
+instance (Precise a, RealFloat a) => Fractional (Log a) where
   -- n/0 == infinity is handled seamlessly for us, as is 0/0 and infinity/infinity NaNs, and 0/infinity == 0.
   Exp a / Exp b = Exp (a-b)
   {-# INLINE (/) #-}
@@ -350,7 +350,7 @@ newtype instance U.Vector    (Log a) = V_Log  (U.Vector    a)
 
 instance (RealFloat a, Unbox a) => Unbox (Log a)
 
-instance (RealFloat a, Unbox a) => M.MVector U.MVector (Log a) where
+instance Unbox a => M.MVector U.MVector (Log a) where
   {-# INLINE basicLength #-}
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicOverlaps #-}
@@ -446,7 +446,7 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 -- True
 --
 -- /NB:/ This does require two passes over the data.
-sum :: (RealFloat a, Ord a, Precise a, Foldable f) => f (Log a) -> Log a
+sum :: (RealFloat a, Precise a, Foldable f) => f (Log a) -> Log a
 sum xs = Exp $ case Foldable.foldl' step1 None xs of
   None -> negInf
   Acc nm1 a
