@@ -1,5 +1,6 @@
-0.12
-----
+0.12 [2018.01.18]
+-----------------
+* Add `Semigroup` instance for `Log`.
 * Drop `safecopy` support
 * Removed some unused constraints.
 
