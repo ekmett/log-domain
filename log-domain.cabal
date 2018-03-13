@@ -84,7 +84,7 @@ test-suite doctests
   else
     build-depends:
       base,
-      doctest        >= 0.11.1 && < 0.15,
+      doctest        >= 0.11.1 && < 0.16,
       generic-deriving,
       log-domain,
       semigroups     >= 0.9,
