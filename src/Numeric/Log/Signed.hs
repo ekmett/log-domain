@@ -1,10 +1,7 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -241,7 +238,7 @@ instance (RealFloat a, Precise a) => Floating (SignedLog a) where
   log (SLExp True a) = SLExp (a >= 0) (log $ abs a)
   log (SLExp False _) = nan
   {-# INLINE log #-}
-  (SLExp sB b) ** (SLExp sE e) | sB || e == 0 || isInfinite e = SLExp sB (b * (multSign sE $ exp e))
+  (SLExp sB b) ** (SLExp sE e) | sB || e == 0 || isInfinite e = SLExp sB (b * multSign sE (exp e))
   _ ** _ = nan
   {-# INLINE (**) #-}
   sqrt (SLExp True a) = SLExp True (a / 2)
