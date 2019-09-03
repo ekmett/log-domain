@@ -1,0 +1,3 @@
+- arguments: [--cpp-define=HLINT, --cpp-ansi, --cpp-define=__USE_FFI__]
+
+- ignore: {name: Use camelCase}
