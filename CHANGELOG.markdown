@@ -1,3 +1,7 @@
+0.13 [2019.11.21]
+-----------------
+* Replace dependency on `Precise` with standard functions available from `base` 4.9 onward.
+
 0.12 [2018.01.18]
 -----------------
 * Add `Semigroup` instance for `Log`.
