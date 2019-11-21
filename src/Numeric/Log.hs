@@ -17,7 +17,6 @@
 --------------------------------------------------------------------
 module Numeric.Log
   ( Log(..)
-  , Precise(..)
   , sum
   ) where
 
@@ -30,7 +29,6 @@ import Control.DeepSeq
 import Control.Monad
 import Data.Binary as Binary
 import Data.Bytes.Serial
-import Data.Complex
 import Data.Data
 import Data.Distributive
 import Data.Foldable as Foldable hiding (sum)
@@ -54,6 +52,7 @@ import Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
 import GHC.Generics
+import Numeric
 import Text.Read as T
 import Text.Show as T
 
@@ -171,7 +170,7 @@ instance Monad Log where
   Exp a >>= f = f a
   {-# INLINE (>>=) #-}
 
-instance (RealFloat a, Precise a, Enum a) => Enum (Log a) where
+instance (RealFloat a, Enum a) => Enum (Log a) where
   succ a = a + 1
   {-# INLINE succ #-}
   pred a = a - 1
@@ -298,7 +297,7 @@ negInf = -(1/0)
 -- >>> signum (Exp (0/0)) :: Log Double
 -- NaN
 
-instance (Precise a, RealFloat a) => Num (Log a) where
+instance RealFloat a => Num (Log a) where
   Exp a * Exp b = Exp (a + b)
   {-# INLINE (*) #-}
   Exp a + Exp b
@@ -324,7 +323,7 @@ instance (Precise a, RealFloat a) => Num (Log a) where
   fromInteger = Exp . log . fromInteger
   {-# INLINE fromInteger #-}
 
-instance (Precise a, RealFloat a) => Fractional (Log a) where
+instance RealFloat a => Fractional (Log a) where
   -- n/0 == infinity is handled seamlessly for us, as is 0/0 and infinity/infinity NaNs, and 0/infinity == 0.
   Exp a / Exp b = Exp (a-b)
   {-# INLINE (/) #-}
@@ -339,7 +338,7 @@ instance (Precise a, RealFloat a) => Fractional (Log a) where
 -- >>> (properFraction 0.5 :: (Integer, Log Double))
 -- (0,0.5)
 
-instance (Precise a, RealFloat a) => RealFrac (Log a) where
+instance RealFloat a => RealFrac (Log a) where
   properFraction l
     | ln l < 0  = (0, l)
     | otherwise = (\(b,a) -> (b, Exp $ log a)) $ properFraction $ exp (ln l)
@@ -394,13 +393,13 @@ instance (RealFloat a, Unbox a) => G.Vector U.Vector (Log a) where
   basicUnsafeCopy (MV_Log mv) (V_Log v) = G.basicUnsafeCopy mv v
   elemseq _ (Exp x) z = G.elemseq (undefined :: U.Vector a) x z
 
-instance (Precise a, RealFloat a, Ord a) => Real (Log a) where
+instance (RealFloat a, Ord a) => Real (Log a) where
   toRational (Exp a) = toRational (exp a)
   {-# INLINE toRational #-}
 
 data Acc1 a = Acc1 {-# UNPACK #-} !Int64 !a
 
-instance (Precise a, RealFloat a) => Semigroup (Log a) where
+instance RealFloat a => Semigroup (Log a) where
   (<>) = (+)
   {-# INLINE (<>) #-}
   sconcat (Exp z :| zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
@@ -412,7 +411,7 @@ instance (Precise a, RealFloat a) => Semigroup (Log a) where
       step2 a r (Exp x) = r + expm1 (x - a)
   {-# INLINE sconcat #-}
 
-instance (Precise a, RealFloat a) => Monoid (Log a) where
+instance RealFloat a => Monoid (Log a) where
   mempty  = Exp negInf
   {-# INLINE mempty #-}
 #if !(MIN_VERSION_base(4,11,0))
@@ -445,7 +444,7 @@ data Acc a = Acc {-# UNPACK #-} !Int64 !a | None
 -- True
 --
 -- /NB:/ This does require two passes over the data.
-sum :: (RealFloat a, Precise a, Foldable f) => f (Log a) -> Log a
+sum :: (RealFloat a, Foldable f) => f (Log a) -> Log a
 sum xs = Exp $ case Foldable.foldl' step1 None xs of
   None -> negInf
   Acc nm1 a
@@ -457,7 +456,7 @@ sum xs = Exp $ case Foldable.foldl' step1 None xs of
     step2 a r (Exp x) = r + expm1 (x - a)
 {-# INLINE sum #-}
 
-instance (RealFloat a, Precise a) => Floating (Log a) where
+instance RealFloat a => Floating (Log a) where
   pi = Exp (log pi)
   {-# INLINE pi #-}
   exp (Exp a) = Exp (exp a)
@@ -502,101 +501,3 @@ instance (RealFloat a, Precise a) => Floating (Log a) where
 "realToFrac" realToFrac = exp . ln :: Log Float -> Float
 "realToFrac" realToFrac = Exp . log :: Double -> Log Double
 "realToFrac" realToFrac = Exp . log :: Float -> Log Float #-}
-
--- | This provides @log1p@ and @expm1@ for working more accurately with small numbers.
-class Floating a => Precise a where
-  -- | Computes @log(1 + x)@
-  --
-  -- This is far enough from 0 that the Taylor series is defined.
-  --
-  -- This can provide much more accurate answers for logarithms of numbers close to 1 (x near 0).
-  --
-  -- These arise when working wth log-scale probabilities a lot.
-  log1p :: a -> a
-
-  -- | The Taylor series for exp(x) is given by
-  --
-  -- > exp(x) = 1 + x + x^2/2! + ...
-  --
-  -- When @x@ is small, the leading 1 consumes all of the available precision.
-  --
-  -- This computes:
-  --
-  -- > exp(x) - 1 = x + x^2/2! + ..
-  --
-  -- which can afford you a great deal of additional precision if you move things around
-  -- algebraically to provide the 1 by other means.
-  expm1 :: a -> a
-
-  log1pexp :: a -> a
-  log1pexp a = log1p (exp a)
-
-  log1mexp :: a -> a
-  log1mexp a = log1p (negate (exp a))
-
-instance Precise Double where
-  log1p = c_log1p
-  {-# INLINE log1p #-}
-  expm1 = c_expm1
-  {-# INLINE expm1 #-}
-  log1mexp a
-    | a <= log 2 = log (negate (expm1 a))
-    | otherwise  = log1p (negate (exp a))
-  {-# INLINE log1mexp #-}
-  log1pexp a
-    | a <= 18   = log1p (exp a)
-    | a <= 100  = a + exp (negate a)
-    | otherwise = a
-  {-# INLINE log1pexp #-}
-
-
-instance Precise Float where
-  log1p = c_log1pf
-  {-# INLINE log1p #-}
-  expm1 = c_expm1f
-  {-# INLINE expm1 #-}
-  log1mexp a | a <= log 2 = log (negate (expm1 a))
-             | otherwise  = log1p (negate (exp a))
-  {-# INLINE log1mexp #-}
-  log1pexp a
-    | a <= 18   = log1p (exp a)
-    | a <= 100  = a + exp (negate a)
-    | otherwise = a
-  {-# INLINE log1pexp #-}
-
-instance (RealFloat a, Precise a) => Precise (Complex a) where
-  expm1 x@(a :+ b)
-    | a*a + b*b < 1, u <- expm1 a, v <- sin (b/2), w <- -2*v*v = (u*w+u+w) :+ (u+1)*sin b
-    | otherwise = exp x - 1
-  {-# INLINE expm1 #-}
-  log1p x@(a :+ b)
-    | abs a < 0.5 && abs b < 0.5, u <- 2*a+a*a+b*b = log1p (u/(1+sqrt (u+1))) :+ atan2 (1 + a) b
-    | otherwise = log (1 + x)
-  {-# INLINE log1p #-}
-
-#ifdef __USE_FFI__
-
-foreign import ccall unsafe "math.h log1p" c_log1p :: Double -> Double
-foreign import ccall unsafe "math.h expm1" c_expm1 :: Double -> Double
-foreign import ccall unsafe "math.h expm1f" c_expm1f :: Float -> Float
-foreign import ccall unsafe "math.h log1pf" c_log1pf :: Float -> Float
-
-#else
-
-c_log1p :: Double -> Double
-{-# INLINE c_log1p #-}
-c_log1p x = log (1 + x)
-
-c_expm1 :: Double -> Double
-{-# INLINE c_expm1 #-}
-c_expm1 x = exp x - 1
-
-c_expm1f :: Float -> Float
-{-# INLINE c_expm1f #-}
-c_expm1f x = exp x - 1
-
-c_log1pf :: Float -> Float
-{-# INLINE c_log1pf #-}
-c_log1pf x = log (1 + x)
-
-#endif

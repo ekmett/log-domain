@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 --------------------------------------------------------------------
 -- |
@@ -15,16 +14,16 @@
 --
 --------------------------------------------------------------------
 module Numeric.Log.Signed
-       ( SignedLog(..)
-       ) where
+( SignedLog(..)
+) where
 
-import Numeric.Log (Precise(..))
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid (Monoid(..))
 #endif
 import Data.Data (Data(..))
 import GHC.Generics (Generic(..))
 import Data.Typeable (Typeable)
+import Numeric
 import Text.Read as T
 import Text.Show as T
 #if __GLASGOW_HASKELL__ < 710
@@ -77,7 +76,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 instance (Show a, RealFloat a, Eq a, Fractional a) => Show (SignedLog a) where
   showsPrec d (SLExp s a) = (if not s && a /= negInf && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
 
-instance (Precise a, RealFloat a, Read a) => Read (SignedLog a) where
+instance (RealFloat a, Read a) => Read (SignedLog a) where
   readPrec = (realToFrac :: a -> SignedLog a) <$> step T.readPrec
 
 nxor :: Bool -> Bool -> Bool
@@ -99,16 +98,16 @@ nxor = (==)
 -- >>> (1 - 3 :: SignedLog Float) ~= (-2)
 -- True
 --
--- >>> (SLExp True (1/0)) - (SLExp True (1/0)) :: SignedLog Double
+-- >>> SLExp True (1/0) - SLExp True (1/0) :: SignedLog Double
 -- NaN
 --
 -- >>> 0 - 0 :: SignedLog Double
 -- 0.0
 --
--- >>> 0 - (SLExp True (1/0)) :: SignedLog Double
+-- >>> 0 - SLExp True (1/0) :: SignedLog Double
 -- -Infinity
 --
--- >>> (SLExp True (1/0)) - 0.0 :: SignedLog Double
+-- >>> SLExp True (1/0) - 0.0 :: SignedLog Double
 -- Infinity
 --
 -- Multiplication
@@ -116,19 +115,19 @@ nxor = (==)
 -- >>> (3 * 2 :: SignedLog Double) ~= 6
 -- True
 --
--- >>> 0 * (SLExp True (1/0)) :: SignedLog Double
+-- >>> 0 * SLExp True (1/0) :: SignedLog Double
 -- NaN
 --
--- >>> (SLExp True (1/0)) * (SLExp True (1/0)) :: SignedLog Double
+-- >>> SLExp True (1/0) * SLExp True (1/0) :: SignedLog Double
 -- Infinity
 --
 -- >>> 0 * 0 :: SignedLog Double
 -- 0.0
 --
--- >>> (SLExp True (0/0)) * 0 :: SignedLog Double
+-- >>> SLExp True (0/0) * 0 :: SignedLog Double
 -- NaN
 --
--- >>> (SLExp True (0/0)) * (SLExp True (1/0)) :: SignedLog Double
+-- >>> SLExp True (0/0) * SLExp True (1/0) :: SignedLog Double
 -- NaN
 --
 -- Addition
@@ -139,10 +138,10 @@ nxor = (==)
 -- >>> 0 + 0 :: SignedLog Double
 -- 0.0
 --
--- >>> (SLExp True (1/0)) + (SLExp True (1/0)) :: SignedLog Double
+-- >>> SLExp True (1/0) + SLExp True (1/0) :: SignedLog Double
 -- Infinity
 --
--- >>> (SLExp True (1/0)) + 0 :: SignedLog Double
+-- >>> SLExp True (1/0) + 0 :: SignedLog Double
 -- Infinity
 --
 -- Division
@@ -153,13 +152,13 @@ nxor = (==)
 -- >>> 3 / 0 :: SignedLog Double
 -- Infinity
 --
--- >>> (SLExp True (1/0)) / 0 :: SignedLog Double
+-- >>> SLExp True (1/0) / 0 :: SignedLog Double
 -- Infinity
 --
--- >>> 0 / (SLExp True (1/0)) :: SignedLog Double
+-- >>> 0 / SLExp True (1/0) :: SignedLog Double
 -- 0.0
 --
--- >>> (SLExp True (1/0)) / (SLExp True (1/0)) :: SignedLog Double
+-- >>> SLExp True (1/0) / SLExp True (1/0) :: SignedLog Double
 -- NaN
 --
 -- >>> 0 / 0 :: SignedLog Double
@@ -187,10 +186,10 @@ nxor = (==)
 -- >>> signum (SLExp True (0/0)) :: SignedLog Double
 -- NaN
 
-instance (Precise a, RealFloat a) => Num (SignedLog a) where
-  (SLExp sA a) * (SLExp sB b) = SLExp (nxor sA sB) (a+b)
+instance RealFloat a => Num (SignedLog a) where
+  SLExp sA a * SLExp sB b = SLExp (nxor sA sB) (a+b)
   {-# INLINE (*) #-}
-  (SLExp sA a) + (SLExp sB b)
+  SLExp sA a + SLExp sB b
     | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp True a
     | sA == sB && a >= b     = SLExp sA (a + log1pexp (b - a))
     | sA == sB && otherwise  = SLExp sA (b + log1pexp (a - b))
@@ -210,8 +209,8 @@ instance (Precise a, RealFloat a) => Num (SignedLog a) where
   negate (SLExp sA a) = SLExp (not sA) a
   {-# INLINE negate #-}
 
-instance (Precise a, RealFloat a) => Fractional (SignedLog a) where
-  (SLExp sA a) / (SLExp sB b) = SLExp (nxor sA sB) (a-b)
+instance RealFloat a => Fractional (SignedLog a) where
+  SLExp sA a / SLExp sB b = SLExp (nxor sA sB) (a-b)
   {-# INLINE (/) #-}
   fromRational a = SLExp (a >= 0) $ log $ fromRational $ abs a
   {-# INLINE fromRational #-}
@@ -221,7 +220,7 @@ instance (Precise a, RealFloat a) => Fractional (SignedLog a) where
 -- >>> (toRational (-3.5 :: SignedLog Double))
 -- (-7) % 2
 
-instance (Precise a, RealFloat a, Ord a) => Real (SignedLog a) where
+instance (RealFloat a, Ord a) => Real (SignedLog a) where
   toRational (SLExp sA a) = toRational $ multSign sA $ exp a
   {-# INLINE toRational #-}
 
@@ -230,7 +229,7 @@ logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
   where value = f $ multSign sA $ exp a
 {-# INLINE logMap #-}
 
-instance (RealFloat a, Precise a) => Floating (SignedLog a) where
+instance RealFloat a => Floating (SignedLog a) where
   pi = SLExp True (log pi)
   {-# INLINE pi #-}
   exp (SLExp sA a) = SLExp True (multSign sA $ exp a)
@@ -281,7 +280,8 @@ instance (RealFloat a, Precise a) => Floating (SignedLog a) where
 -- >>> (properFraction (-0.5) :: (Integer, SignedLog Double))
 -- (0,-0.5)
 
-instance (Precise a, RealFloat a) => RealFrac (SignedLog a) where
+instance RealFloat a => RealFrac (SignedLog a) where
   properFraction slX@(SLExp sX x)
     | x < 0     = (0, slX)
-    | otherwise = (\(b,a) -> (b, SLExp sX $ log $ abs a)) $ properFraction $ multSign sX $ exp x
+    | otherwise = case properFraction $ multSign sX $ exp x of
+      (b,a) -> (b, SLExp sX $ log $ abs a)

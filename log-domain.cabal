@@ -1,6 +1,6 @@
 name:          log-domain
 category:      Numeric
-version:       0.12
+version:       0.13
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -42,7 +42,7 @@ source-repository head
 
 custom-setup
   setup-depends:
-    base          >= 4 && < 5,
+    base          >= 4.9 && < 5,
     Cabal,
     cabal-doctest >= 1 && < 1.1
 
