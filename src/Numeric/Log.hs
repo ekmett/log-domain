@@ -209,16 +209,16 @@ negInf = -(1/0)
 -- >>> 1 - 3 :: Log Float
 -- NaN
 --
--- >>> (Exp (1/0)) - (Exp (1/0)) :: Log Double
+-- >>> Exp (1/0) - Exp (1/0) :: Log Double
 -- NaN
 --
 -- >>> 0 - 0 :: Log Double
 -- 0.0
 --
--- >>> 0 - (Exp (1/0)) :: Log Double
+-- >>> 0 - Exp (1/0) :: Log Double
 -- NaN
 --
--- >>> (Exp (1/0)) - 0.0 :: Log Double
+-- >>> Exp (1/0) - 0.0 :: Log Double
 -- Infinity
 --
 -- Multiplication
@@ -226,19 +226,19 @@ negInf = -(1/0)
 -- >>> (3 * 2 :: Log Double) ~= 6
 -- True
 --
--- >>> 0 * (Exp (1/0)) :: Log Double
+-- >>> 0 * Exp (1/0) :: Log Double
 -- NaN
 --
--- >>> (Exp (1/0)) * (Exp (1/0)) :: Log Double
+-- >>> Exp (1/0) * Exp (1/0) :: Log Double
 -- Infinity
 --
 -- >>> 0 * 0 :: Log Double
 -- 0.0
 --
--- >>> (Exp (0/0)) * 0 :: Log Double
+-- >>> Exp (0/0) * 0 :: Log Double
 -- NaN
 --
--- >>> (Exp (0/0)) * (Exp (1/0)) :: Log Double
+-- >>> Exp (0/0) * Exp (1/0) :: Log Double
 -- NaN
 --
 -- Addition
@@ -249,10 +249,10 @@ negInf = -(1/0)
 -- >>> 0 + 0 :: Log Double
 -- 0.0
 --
--- >>> (Exp (1/0)) + (Exp (1/0)) :: Log Double
+-- >>> Exp (1/0) + Exp (1/0) :: Log Double
 -- Infinity
 --
--- >>> (Exp (1/0)) + 0 :: Log Double
+-- >>> Exp (1/0) + 0 :: Log Double
 -- Infinity
 --
 -- Division
@@ -263,13 +263,13 @@ negInf = -(1/0)
 -- >>> 3 / 0 :: Log Double
 -- Infinity
 --
--- >>> (Exp (1/0)) / 0 :: Log Double
+-- >>> Exp (1/0) / 0 :: Log Double
 -- Infinity
 --
--- >>> 0 / (Exp (1/0)) :: Log Double
+-- >>> 0 / Exp (1/0) :: Log Double
 -- 0.0
 --
--- >>> (Exp (1/0)) / (Exp (1/0)) :: Log Double
+-- >>> Exp (1/0) / Exp (1/0) :: Log Double
 -- NaN
 --
 -- >>> 0 / 0 :: Log Double
