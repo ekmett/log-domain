@@ -47,10 +47,6 @@ flag test-doctests
   default: True
   manual: True
 
-flag ffi
-  default: True
-  manual: True
-
 library
   build-depends:
     base                      >= 4.9      && < 5,
