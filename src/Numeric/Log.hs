@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE Trustworthy #-}
 --------------------------------------------------------------------
