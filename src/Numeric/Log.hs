@@ -24,7 +24,6 @@ import Control.Applicative
 #endif
 import Control.Comonad
 import Control.DeepSeq
-import Control.Monad
 import Data.Binary as Binary
 import Data.Bytes.Serial
 import Data.Data
@@ -364,9 +363,9 @@ instance Unbox a => M.MVector U.MVector (Log a) where
   basicLength (MV_Log v) = M.basicLength v
   basicUnsafeSlice i n (MV_Log v) = MV_Log $ M.basicUnsafeSlice i n v
   basicOverlaps (MV_Log v1) (MV_Log v2) = M.basicOverlaps v1 v2
-  basicUnsafeNew n = MV_Log `liftM` M.basicUnsafeNew n
-  basicUnsafeReplicate n (Exp x) = MV_Log `liftM` M.basicUnsafeReplicate n x
-  basicUnsafeRead (MV_Log v) i = Exp `liftM` M.basicUnsafeRead v i
+  basicUnsafeNew n = MV_Log <$> M.basicUnsafeNew n
+  basicUnsafeReplicate n (Exp x) = MV_Log <$> M.basicUnsafeReplicate n x
+  basicUnsafeRead (MV_Log v) i = Exp <$> M.basicUnsafeRead v i
   basicUnsafeWrite (MV_Log v) i (Exp x) = M.basicUnsafeWrite v i x
   basicClear (MV_Log v) = M.basicClear v
 #if MIN_VERSION_vector(0,11,0)
@@ -374,7 +373,7 @@ instance Unbox a => M.MVector U.MVector (Log a) where
 #endif
   basicSet (MV_Log v) (Exp x) = M.basicSet v x
   basicUnsafeCopy (MV_Log v1) (MV_Log v2) = M.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_Log v) n = MV_Log `liftM` M.basicUnsafeGrow v n
+  basicUnsafeGrow (MV_Log v) n = MV_Log <$> M.basicUnsafeGrow v n
 
 instance (RealFloat a, Unbox a) => G.Vector U.Vector (Log a) where
   {-# INLINE basicUnsafeFreeze #-}
@@ -383,11 +382,11 @@ instance (RealFloat a, Unbox a) => G.Vector U.Vector (Log a) where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_Log v) = V_Log `liftM` G.basicUnsafeFreeze v
-  basicUnsafeThaw (V_Log v) = MV_Log `liftM` G.basicUnsafeThaw v
+  basicUnsafeFreeze (MV_Log v) = V_Log <$> G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Log v) = MV_Log <$> G.basicUnsafeThaw v
   basicLength (V_Log v) = G.basicLength v
   basicUnsafeSlice i n (V_Log v) = V_Log $ G.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_Log v) i = Exp `liftM` G.basicUnsafeIndexM v i
+  basicUnsafeIndexM (V_Log v) i = Exp <$> G.basicUnsafeIndexM v i
   basicUnsafeCopy (MV_Log mv) (V_Log v) = G.basicUnsafeCopy mv v
   elemseq _ (Exp x) z = G.elemseq (undefined :: U.Vector a) x z
 
