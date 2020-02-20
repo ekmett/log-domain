@@ -42,7 +42,7 @@ negInf = (-1)/0
 nan :: Fractional a => a
 nan = 0/0
 
--- Machine epsilon, the difference between 1 and the next representable value
+-- | Machine epsilon, the difference between 1 and the next representable value
 eps :: RealFloat a => a
 eps = let ret = scaleFloat (1 - floatDigits ret) 1 in ret
 

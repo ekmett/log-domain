@@ -190,6 +190,11 @@ negInf :: Fractional a => a
 negInf = -(1/0)
 {-# INLINE negInf #-}
 
+-- | Machine epsilon, the difference between 1 and the next representable value
+eps :: RealFloat a => a
+eps = let ret = scaleFloat (1 - floatDigits ret) 1 in ret
+{-# INLINE eps #-}
+
 -- $LogNumTests
 --
 -- Subtraction
@@ -478,11 +483,16 @@ instance RealFloat a => Floating (Log a) where
   {-# INLINE acos #-}
   atan = logMap atan
   {-# INLINE atan #-}
-  sinh = logMap sinh
+  sinh (Exp a) | a < min (-1) (log (3*eps) / 2) = Exp a
+               | a < 0 = Exp (log (sinh expA))
+               | otherwise = Exp (expA + log ((1 - exp (-2 * expA)) / 2))
+    where expA = exp a
   {-# INLINE sinh #-}
-  cosh = logMap cosh
+  cosh (Exp a) = Exp (expA + log ((1 + exp (-2 * expA)) / 2))
+    where expA = exp a
   {-# INLINE cosh #-}
-  tanh = logMap tanh
+  tanh (Exp a) | a < min (-1) (log (3*eps/2) / 2) = Exp a
+               | otherwise = Exp (log (tanh (exp a)))
   {-# INLINE tanh #-}
   asinh = logMap asinh
   {-# INLINE asinh #-}
@@ -490,6 +500,8 @@ instance RealFloat a => Floating (Log a) where
   {-# INLINE acosh #-}
   atanh = logMap atanh
   {-# INLINE atanh #-}
+  log1p (Exp a) = Exp (log (log1pexp a))
+  {-# INLINE log1p #-}
 
 {-# RULES
 "realToFrac" realToFrac = Exp . realToFrac . ln :: Log Double -> Log Float
