@@ -242,6 +242,65 @@ logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
   where value = f $ multSign sA $ exp a
 {-# INLINE logMap #-}
 
+-- $SignedLogFloatingTests
+--
+-- >>> (sinh (SLExp True (-17)) :: SignedLog Double) ~= SLExp True (-17)
+-- True
+--
+-- >>> (sinh (SLExp True (-18)) :: SignedLog Double) ~= SLExp True (-18)
+-- True
+--
+-- >>> sinh 0 :: SignedLog Double
+-- 0.0
+--
+-- >>> (sinh 1 :: SignedLog Double) ~= 1.1752
+-- True
+--
+-- >>> (sinh (-1) :: SignedLog Double) == negate (sinh 1)
+-- True
+--
+-- >>> floor (lnSL (sinh (SLExp True 12) :: SignedLog Double))
+-- 162754
+--
+-- >>> cosh 0 :: SignedLog Double
+-- 1.0
+--
+-- >>> (cosh 1 :: SignedLog Double) ~= 1.543
+-- True
+--
+-- >>> (cosh (-1) :: SignedLog Double) == cosh 1
+-- True
+--
+-- >>> floor (lnSL (cosh (SLExp True 12) :: SignedLog Double))
+-- 162754
+--
+-- >>> (tanh (SLExp True (-17)) :: SignedLog Double) ~= SLExp True (-17)
+-- True
+--
+-- >>> (tanh (SLExp True (-18)) :: SignedLog Double) ~= SLExp True (-18)
+-- True
+--
+-- >>> tanh 0 :: SignedLog Double
+-- 0.0
+--
+-- >>> (tanh 1 :: SignedLog Double) ~= (sinh 1 / cosh 1)
+-- True
+--
+-- >>> (tanh (-1) :: SignedLog Double) == negate (tanh 1)
+-- True
+--
+-- >>> tanh (SLExp True 12) :: SignedLog Double
+-- 1.0
+--
+-- >>> (log1p 1 :: SignedLog Double) ~= log 2
+-- True
+--
+-- >>> (log1p (-0.5) :: SignedLog Double) ~= log 0.5
+-- True
+--
+-- >>> log (log1p (SLExp True (exp 100)) :: SignedLog Double) ~= 100
+-- True
+
 instance RealFloat a => Floating (SignedLog a) where
   pi = SLExp True (log pi)
   {-# INLINE pi #-}

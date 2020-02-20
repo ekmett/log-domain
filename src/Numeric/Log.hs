@@ -458,6 +458,53 @@ sum xs = Exp $ case Foldable.foldl' step1 None xs of
     step2 a r (Exp x) = r + expm1 (x - a)
 {-# INLINE sum #-}
 
+-- $LogFloatingTests
+--
+-- >>> (sinh (Exp (-17)) :: Log Double) ~= Exp (-17)
+-- True
+--
+-- >>> (sinh (Exp (-18)) :: Log Double) ~= Exp (-18)
+-- True
+--
+-- >>> sinh 0 :: Log Double
+-- 0.0
+--
+-- >>> (sinh 1 :: Log Double) ~= 1.1752
+-- True
+--
+-- >>> floor (ln (sinh (Exp 12) :: Log Double))
+-- 162754
+--
+-- >>> cosh 0 :: Log Double
+-- 1.0
+--
+-- >>> (cosh 1 :: Log Double) ~= 1.543
+-- True
+--
+-- >>> floor (ln (cosh (Exp 12) :: Log Double))
+-- 162754
+--
+-- >>> (tanh (Exp (-17)) :: Log Double) ~= Exp (-17)
+-- True
+--
+-- >>> (tanh (Exp (-18)) :: Log Double) ~= Exp (-18)
+-- True
+--
+-- >>> tanh 0 :: Log Double
+-- 0.0
+--
+-- >>> (tanh 1 :: Log Double) ~= (sinh 1 / cosh 1)
+-- True
+--
+-- >>> tanh (Exp 12) :: Log Double
+-- 1.0
+--
+-- >>> (log1p 1 :: Log Double) ~= log 2
+-- True
+--
+-- >>> log (log1p (Exp (exp 100)) :: Log Double) ~= 100
+-- True
+
 instance RealFloat a => Floating (Log a) where
   pi = Exp (log pi)
   {-# INLINE pi #-}
