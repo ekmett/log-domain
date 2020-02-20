@@ -190,7 +190,7 @@ instance RealFloat a => Num (SignedLog a) where
   SLExp sA a * SLExp sB b = SLExp (nxor sA sB) (a+b)
   {-# INLINE (*) #-}
   SLExp sA a + SLExp sB b
-    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp True a
+    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp (sA && sB) a
     | sA == sB && a >= b     = SLExp sA (a + log1pexp (b - a))
     | sA == sB && otherwise  = SLExp sA (b + log1pexp (a - b))
     | sA /= sB && a == b && not (isInfinite a) = SLExp True negInf
