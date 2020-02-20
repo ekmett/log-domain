@@ -244,7 +244,7 @@ instance RealFloat a => Floating (SignedLog a) where
   sqrt (SLExp False _) = nan
   {-# INLINE sqrt #-}
   logBase slA@(SLExp _ a) slB@(SLExp _ b) | slA >= 0 && slB >= 0 = SLExp (value >= 0) (log $ abs value)
-    where value = logBase (exp a) (exp b)
+    where value = b / a
   logBase _ _ = nan
   {-# INLINE logBase #-}
   sin = logMap sin

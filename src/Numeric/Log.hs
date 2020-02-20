@@ -464,7 +464,7 @@ instance RealFloat a => Floating (Log a) where
   {-# INLINE (**) #-}
   sqrt (Exp a) = Exp (a / 2)
   {-# INLINE sqrt #-}
-  logBase (Exp a) (Exp b) = Exp (log (logBase (exp a) (exp b)))
+  logBase (Exp a) (Exp b) = Exp (log (b / a))
   {-# INLINE logBase #-}
   sin = logMap sin
   {-# INLINE sin #-}
