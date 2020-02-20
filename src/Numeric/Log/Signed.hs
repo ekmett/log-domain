@@ -44,7 +44,7 @@ nan = 0/0
 
 multSign :: (Num a) => Bool -> a -> a
 multSign True = id
-multSign False = (*) (-1)
+multSign False = negate
 
 -- $SignedLogCompTests
 --
