@@ -42,6 +42,10 @@ negInf = (-1)/0
 nan :: Fractional a => a
 nan = 0/0
 
+-- Machine epsilon, the difference between 1 and the next representable value
+eps :: RealFloat a => a
+eps = let ret = scaleFloat (1 - floatDigits ret) 1 in ret
+
 multSign :: (Num a) => Bool -> a -> a
 multSign True = id
 multSign False = negate
@@ -268,11 +272,29 @@ instance RealFloat a => Floating (SignedLog a) where
   {-# INLINE acos #-}
   atan = logMap atan
   {-# INLINE atan #-}
-  sinh = logMap sinh
+
+  -- log (sinh (exp a))
+  --   = a + log (sinh (exp a) / exp a))
+  --   = a + log (1 + (exp a)^2 / 6 + (exp a)^4 / 120 + ...)
+  --   = a + (exp a)^2 / 6 - (exp a)^4 / 180 + ...
+  -- a < log (sinh (exp a)) < a + (exp a)^2 / 6
+  -- Therefore, if a < log (3 * eps) / 2,
+  -- a < log (sinh (exp a)) < a + eps / 2
+  -- and so if a < -1, then log (sinh (exp a)) rounds to a
+  sinh (SLExp sA a) = SLExp sA logValue
+    where expA = exp a
+          logValue | a < min (-1) (log (3*eps) / 2) = a
+                   | a < 0 = log (sinh expA)
+                   | otherwise = expA + log ((1 - exp (-2 * expA)) / 2)
   {-# INLINE sinh #-}
-  cosh = logMap cosh
+  cosh (SLExp _ a) = SLExp True (expA + log ((1 + exp (-2 * expA)) / 2))
+    where expA = exp a
   {-# INLINE cosh #-}
-  tanh = logMap tanh
+  -- log (tanh (exp a))
+  --   = a - (exp a)^2 / 3 + 7 * (exp a)^4 / 90 - ...
+  tanh (SLExp sA a) = SLExp sA logValue
+    where logValue | a < min (-1) (log (3*eps/2) / 2) = a
+                   | otherwise = log (tanh (exp a))
   {-# INLINE tanh #-}
   asinh = logMap asinh
   {-# INLINE asinh #-}
