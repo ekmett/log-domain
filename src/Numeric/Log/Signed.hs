@@ -65,7 +65,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 -- $SignedLogShowTests
 --
 -- >>> show (-0 :: SignedLog Double)
--- "0.0"
+-- "-0.0"
 --
 -- >>> show (1 :: SignedLog Double)
 -- "1.0"
@@ -74,7 +74,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 -- "-1.0"
 
 instance (Show a, RealFloat a, Eq a, Fractional a) => Show (SignedLog a) where
-  showsPrec d (SLExp s a) = (if not s && a /= negInf && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
+  showsPrec d (SLExp s a) = (if not s && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
 
 instance (RealFloat a, Read a) => Read (SignedLog a) where
   readPrec = (realToFrac :: a -> SignedLog a) <$> step T.readPrec
@@ -138,8 +138,14 @@ nxor = (==)
 -- >>> 0 + 0 :: SignedLog Double
 -- 0.0
 --
+-- >>> (-0) + (-0) :: SignedLog Double
+-- -0.0
+--
 -- >>> SLExp True (1/0) + SLExp True (1/0) :: SignedLog Double
 -- Infinity
+--
+-- >>> SLExp False (1/0) + SLExp False (1/0) :: SignedLog Double
+-- -Infinity
 --
 -- >>> SLExp True (1/0) + 0 :: SignedLog Double
 -- Infinity
@@ -170,7 +176,7 @@ nxor = (==)
 -- False
 --
 -- >>> (-0) :: SignedLog Double
--- 0.0
+-- -0.0
 --
 -- >>> (-(0/0)) :: SignedLog Double
 -- NaN
@@ -179,6 +185,9 @@ nxor = (==)
 --
 -- >>> signum 0 :: SignedLog Double
 -- 0.0
+--
+-- >>> signum (-0) :: SignedLog Double
+-- -0.0
 --
 -- >>> signum 3 :: SignedLog Double
 -- 1.0
@@ -190,7 +199,7 @@ instance RealFloat a => Num (SignedLog a) where
   SLExp sA a * SLExp sB b = SLExp (nxor sA sB) (a+b)
   {-# INLINE (*) #-}
   SLExp sA a + SLExp sB b
-    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp (sA && sB) a
+    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp (sA || sB) a
     | sA == sB && a >= b     = SLExp sA (a + log1pexp (b - a))
     | sA == sB && otherwise  = SLExp sA (b + log1pexp (a - b))
     | sA /= sB && a == b && not (isInfinite a) = SLExp True negInf
@@ -200,7 +209,7 @@ instance RealFloat a => Num (SignedLog a) where
   abs (SLExp _ a) = SLExp True a
   {-# INLINE abs #-}
   signum (SLExp sA a)
-    | isInfinite a && a < 0 = SLExp True negInf
+    | isInfinite a && a < 0 = SLExp sA negInf
     | isNaN a = SLExp True nan -- signum(0/0::Double) == -1.0, this doesn't seem like a behavior worth replicating.
     | otherwise = SLExp sA 0
   {-# INLINE signum #-}
