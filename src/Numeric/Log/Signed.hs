@@ -303,6 +303,10 @@ instance RealFloat a => Floating (SignedLog a) where
   atanh = logMap atanh
   {-# INLINE atanh #-}
 
+  log1p (SLExp True a) = SLExp True (log (log1pexp a))
+  log1p (SLExp False a) = SLExp (a > 0) (log (negate (log1mexp a))) -- return positive NaN on failure
+  {-# INLINE log1p #-}
+
 -- $SignedLogProperFractionTests
 --
 -- >>> (properFraction (-1.5) :: (Integer, SignedLog Double))
