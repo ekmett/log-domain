@@ -21,13 +21,10 @@ synopsis:      Log-domain arithmetic
 description:   This package provides log-domain floats, doubles and complex numbers.
 
 extra-source-files:
-  .travis.yml
   .ghci
   .gitignore
   .hlint.yaml
   .vim.custom
-  travis/cabal-apt-install
-  travis/config
   AUTHORS.markdown
   README.markdown
   CHANGELOG.markdown
