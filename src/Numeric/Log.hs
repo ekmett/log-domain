@@ -53,8 +53,6 @@ import Numeric
 import Text.Read as T
 import Text.Show as T
 
-{-# ANN module "HLint: ignore Eta reduce" #-}
-
 -- $setup
 -- >>> let Exp x ~= Exp y = abs ((exp x-exp y) / exp x) < 0.01
 
