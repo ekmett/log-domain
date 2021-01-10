@@ -30,9 +30,6 @@ import Text.Show as T
 import Data.Functor ((<$>))
 #endif
 
--- $setup
--- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-(multSign (nxor sX sY) (exp y))) / exp x) < 0.01
-
 -- | @Log@-domain @Float@ and @Double@ values, with a sign bit.
 data SignedLog a = SLExp { signSL :: Bool, lnSL :: a} deriving (Data, Typeable, Generic)
 
@@ -83,6 +80,13 @@ nxor :: Bool -> Bool -> Bool
 nxor = (==)
 
 -- $SignedLogNumTests
+--
+-- Repeating internals, add testing function (~=)
+--
+-- >>> let nxor = (==)
+-- >>> let multSign b = if b then id else (*) (-1)
+--
+-- >>> let SLExp sX x ~= SLExp sY y = abs ((exp x-(multSign (nxor sX sY) (exp y))) / exp x) < 0.01
 --
 -- Subtraction
 --
