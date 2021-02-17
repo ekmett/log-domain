@@ -1,6 +1,6 @@
 name:          log-domain
 category:      Numeric
-version:       0.13
+version:       0.13.1
 license:       BSD3
 cabal-version: >= 1.10
 license-file:  LICENSE
