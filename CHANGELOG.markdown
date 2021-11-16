@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+0.13.2 [2021.11.15]
+-------------------
 * Add an `Eq1 Log` instance.
 * Allow building with `hashable-1.4.*`.
 
