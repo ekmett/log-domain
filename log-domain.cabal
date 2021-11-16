@@ -47,14 +47,11 @@ library
     hashable                  >= 1.2.5    && < 1.4,
     semigroupoids             >= 4        && < 6,
     semigroups                >= 0.8.4    && < 1,
-    vector                    >= 0.9      && < 0.13
+    vector                    >= 0.11     && < 0.13
 
   exposed-modules:
     Numeric.Log Numeric.Log.Signed
 
-  if impl(ghc < 7.6)
-    build-depends: ghc-prim
-
-  ghc-options: -Wall -fwarn-tabs -O2
+  ghc-options: -Wall -Wtabs -O2
   hs-source-dirs: src
   default-language: Haskell2010

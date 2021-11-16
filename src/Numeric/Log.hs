@@ -19,9 +19,6 @@ module Numeric.Log
   ) where
 
 import Prelude hiding (maximum, sum)
-#if __GLASGOW_HASKELL__ < 710
-import Control.Applicative
-#endif
 import Control.Comonad
 import Control.DeepSeq
 import Data.Binary as Binary
@@ -40,9 +37,6 @@ import Data.Semigroup
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
-#if __GLASGOW_HASKELL__ < 710
-import Data.Traversable
-#endif
 import Data.Vector.Unboxed as U hiding (sum)
 import Data.Vector.Generic as G hiding (sum)
 import Data.Vector.Generic.Mutable as M
@@ -57,7 +51,7 @@ import Text.Show as T
 -- >>> let Exp x ~= Exp y = abs ((exp x-exp y) / exp x) < 0.01
 
 -- | @Log@-domain @Float@ and @Double@ values.
-newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Typeable,Generic)
+newtype Log a = Exp { ln :: a } deriving (Eq,Ord,Data,Generic)
 
 instance (Floating a, Show a) => Show (Log a) where
   showsPrec d (Exp a) = T.showsPrec d (exp a)
@@ -352,9 +346,7 @@ instance Unbox a => M.MVector U.MVector (Log a) where
   {-# INLINE basicUnsafeRead #-}
   {-# INLINE basicUnsafeWrite #-}
   {-# INLINE basicClear #-}
-#if MIN_VERSION_vector(0,11,0)
   {-# INLINE basicInitialize #-}
-#endif
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
@@ -366,9 +358,7 @@ instance Unbox a => M.MVector U.MVector (Log a) where
   basicUnsafeRead (MV_Log v) i = Exp <$> M.basicUnsafeRead v i
   basicUnsafeWrite (MV_Log v) i (Exp x) = M.basicUnsafeWrite v i x
   basicClear (MV_Log v) = M.basicClear v
-#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_Log v) = M.basicInitialize v
-#endif
   basicSet (MV_Log v) (Exp x) = M.basicSet v x
   basicUnsafeCopy (MV_Log v1) (MV_Log v2) = M.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_Log v) n = MV_Log <$> M.basicUnsafeGrow v n

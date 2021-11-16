@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -17,21 +16,14 @@ module Numeric.Log.Signed
 ( SignedLog(..)
 ) where
 
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid (Monoid(..))
-#endif
 import Data.Data (Data(..))
 import GHC.Generics (Generic(..))
-import Data.Typeable (Typeable)
 import Numeric
 import Text.Read as T
 import Text.Show as T
-#if __GLASGOW_HASKELL__ < 710
-import Data.Functor ((<$>))
-#endif
 
 -- | @Log@-domain @Float@ and @Double@ values, with a sign bit.
-data SignedLog a = SLExp { signSL :: Bool, lnSL :: a} deriving (Data, Typeable, Generic)
+data SignedLog a = SLExp { signSL :: Bool, lnSL :: a} deriving (Data, Generic)
 
 negInf :: Fractional a => a
 negInf = (-1)/0
