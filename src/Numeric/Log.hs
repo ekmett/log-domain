@@ -27,6 +27,7 @@ import Data.Data
 import Data.Distributive
 import Data.Foldable as Foldable hiding (sum)
 import Data.Functor.Bind
+import Data.Functor.Classes
 import Data.Functor.Extend
 import Data.Hashable
 import Data.Hashable.Lifted
@@ -91,6 +92,9 @@ instance Hashable a => Hashable (Log a) where
 instance Hashable1 Log where
   liftHashWithSalt hws i (Exp a) = hws i a
   {-# INLINE liftHashWithSalt #-}
+
+instance Eq1 Log where
+  liftEq eq (Exp a) (Exp b) = eq a b
 
 instance Storable a => Storable (Log a) where
   sizeOf = sizeOf . ln

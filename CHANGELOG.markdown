@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add an `Eq1 Log` instance.
+* Allow building with `hashable-1.4.*`.
+
 0.13.1 [2021.02.17]
 -------------------
 * The build-type has been changed from `Custom` to `Simple`.
