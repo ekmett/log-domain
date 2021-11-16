@@ -376,7 +376,7 @@ instance (RealFloat a, Unbox a) => G.Vector U.Vector (Log a) where
   basicUnsafeSlice i n (V_Log v) = V_Log $ G.basicUnsafeSlice i n v
   basicUnsafeIndexM (V_Log v) i = Exp <$> G.basicUnsafeIndexM v i
   basicUnsafeCopy (MV_Log mv) (V_Log v) = G.basicUnsafeCopy mv v
-  elemseq _ (Exp x) z = G.elemseq (undefined :: U.Vector a) x z
+  elemseq _ (Exp x) = G.elemseq (undefined :: U.Vector a) x
 
 instance (RealFloat a, Ord a) => Real (Log a) where
   toRational (Exp a) = toRational (exp a)
