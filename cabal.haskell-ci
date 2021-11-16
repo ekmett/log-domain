@@ -1,8 +1,9 @@
+distribution:           bionic
 no-tests-no-benchmarks: False
 unconstrained:          False
 allow-failures:         <7.3
 hlint:                  True
-hlint-job:              8.10.4
-irc-channels:           irc.freenode.org#haskell-lens
+hlint-job:              9.0.1
+-- irc-channels:           irc.freenode.org#haskell-lens
 irc-if-in-origin-repo:  True
 docspec:                True
