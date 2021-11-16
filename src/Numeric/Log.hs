@@ -31,15 +31,16 @@ import Data.Functor.Extend
 import Data.Hashable
 import Data.Hashable.Lifted
 import Data.Int
-import Data.List as List hiding (sum)
+import qualified Data.List as List
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Semigroup
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Serialize as Serialize
-import Data.Vector.Unboxed as U hiding (sum)
-import Data.Vector.Generic as G hiding (sum)
-import Data.Vector.Generic.Mutable as M
+import qualified Data.Vector.Unboxed as U
+import Data.Vector.Unboxed (Unbox)
+import qualified Data.Vector.Generic as G
+import qualified Data.Vector.Generic.Mutable as M
 import Foreign.Ptr
 import Foreign.Storable
 import GHC.Generics
