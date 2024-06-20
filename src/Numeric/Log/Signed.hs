@@ -31,9 +31,13 @@ negInf = (-1)/0
 nan :: Fractional a => a
 nan = 0/0
 
+-- | Machine epsilon, the difference between 1 and the next representable value
+eps :: RealFloat a => a
+eps = let ret = scaleFloat (1 - floatDigits ret) 1 in ret
+
 multSign :: (Num a) => Bool -> a -> a
 multSign True = id
-multSign False = (*) (-1)
+multSign False = negate
 
 -- $SignedLogCompTests
 --
@@ -54,7 +58,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 -- $SignedLogShowTests
 --
 -- >>> show (-0 :: SignedLog Double)
--- "0.0"
+-- "-0.0"
 --
 -- >>> show (1 :: SignedLog Double)
 -- "1.0"
@@ -63,7 +67,7 @@ instance (Ord a, Fractional a) => Ord (SignedLog a) where
 -- "-1.0"
 
 instance (Show a, RealFloat a, Eq a, Fractional a) => Show (SignedLog a) where
-  showsPrec d (SLExp s a) = (if not s && a /= negInf && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
+  showsPrec d (SLExp s a) = (if not s && not (isNaN a) then T.showChar '-' else id) . T.showsPrec d (exp a)
 
 instance (RealFloat a, Read a) => Read (SignedLog a) where
   readPrec = (realToFrac :: a -> SignedLog a) <$> step T.readPrec
@@ -134,8 +138,14 @@ nxor = (==)
 -- >>> 0 + 0 :: SignedLog Double
 -- 0.0
 --
+-- >>> (-0) + (-0) :: SignedLog Double
+-- -0.0
+--
 -- >>> SLExp True (1/0) + SLExp True (1/0) :: SignedLog Double
 -- Infinity
+--
+-- >>> SLExp False (1/0) + SLExp False (1/0) :: SignedLog Double
+-- -Infinity
 --
 -- >>> SLExp True (1/0) + 0 :: SignedLog Double
 -- Infinity
@@ -166,7 +176,7 @@ nxor = (==)
 -- False
 --
 -- >>> (-0) :: SignedLog Double
--- 0.0
+-- -0.0
 --
 -- >>> (-(0/0)) :: SignedLog Double
 -- NaN
@@ -175,6 +185,9 @@ nxor = (==)
 --
 -- >>> signum 0 :: SignedLog Double
 -- 0.0
+--
+-- >>> signum (-0) :: SignedLog Double
+-- -0.0
 --
 -- >>> signum 3 :: SignedLog Double
 -- 1.0
@@ -186,7 +199,7 @@ instance RealFloat a => Num (SignedLog a) where
   SLExp sA a * SLExp sB b = SLExp (nxor sA sB) (a+b)
   {-# INLINE (*) #-}
   SLExp sA a + SLExp sB b
-    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp True a
+    | a == b && isInfinite a && (a < 0 || nxor sA sB) = SLExp (sA || sB) a
     | sA == sB && a >= b     = SLExp sA (a + log1pexp (b - a))
     | sA == sB && otherwise  = SLExp sA (b + log1pexp (a - b))
     | sA /= sB && a == b && not (isInfinite a) = SLExp True negInf
@@ -196,7 +209,7 @@ instance RealFloat a => Num (SignedLog a) where
   abs (SLExp _ a) = SLExp True a
   {-# INLINE abs #-}
   signum (SLExp sA a)
-    | isInfinite a && a < 0 = SLExp True negInf
+    | isInfinite a && a < 0 = SLExp sA negInf
     | isNaN a = SLExp True nan -- signum(0/0::Double) == -1.0, this doesn't seem like a behavior worth replicating.
     | otherwise = SLExp sA 0
   {-# INLINE signum #-}
@@ -225,6 +238,65 @@ logMap f (SLExp sA a) = SLExp (value >= 0) $ log $ abs value
   where value = f $ multSign sA $ exp a
 {-# INLINE logMap #-}
 
+-- $SignedLogFloatingTests
+--
+-- >>> (sinh (SLExp True (-17)) :: SignedLog Double) ~= SLExp True (-17)
+-- True
+--
+-- >>> (sinh (SLExp True (-18)) :: SignedLog Double) ~= SLExp True (-18)
+-- True
+--
+-- >>> sinh 0 :: SignedLog Double
+-- 0.0
+--
+-- >>> (sinh 1 :: SignedLog Double) ~= 1.1752
+-- True
+--
+-- >>> (sinh (-1) :: SignedLog Double) == negate (sinh 1)
+-- True
+--
+-- >>> floor (lnSL (sinh (SLExp True 12) :: SignedLog Double))
+-- 162754
+--
+-- >>> cosh 0 :: SignedLog Double
+-- 1.0
+--
+-- >>> (cosh 1 :: SignedLog Double) ~= 1.543
+-- True
+--
+-- >>> (cosh (-1) :: SignedLog Double) == cosh 1
+-- True
+--
+-- >>> floor (lnSL (cosh (SLExp True 12) :: SignedLog Double))
+-- 162754
+--
+-- >>> (tanh (SLExp True (-17)) :: SignedLog Double) ~= SLExp True (-17)
+-- True
+--
+-- >>> (tanh (SLExp True (-18)) :: SignedLog Double) ~= SLExp True (-18)
+-- True
+--
+-- >>> tanh 0 :: SignedLog Double
+-- 0.0
+--
+-- >>> (tanh 1 :: SignedLog Double) ~= (sinh 1 / cosh 1)
+-- True
+--
+-- >>> (tanh (-1) :: SignedLog Double) == negate (tanh 1)
+-- True
+--
+-- >>> tanh (SLExp True 12) :: SignedLog Double
+-- 1.0
+--
+-- >>> (log1p 1 :: SignedLog Double) ~= log 2
+-- True
+--
+-- >>> (log1p (-0.5) :: SignedLog Double) ~= log 0.5
+-- True
+--
+-- >>> log (log1p (SLExp True (exp 100)) :: SignedLog Double) ~= 100
+-- True
+
 instance RealFloat a => Floating (SignedLog a) where
   pi = SLExp True (log pi)
   {-# INLINE pi #-}
@@ -240,7 +312,7 @@ instance RealFloat a => Floating (SignedLog a) where
   sqrt (SLExp False _) = nan
   {-# INLINE sqrt #-}
   logBase slA@(SLExp _ a) slB@(SLExp _ b) | slA >= 0 && slB >= 0 = SLExp (value >= 0) (log $ abs value)
-    where value = logBase (exp a) (exp b)
+    where value = b / a
   logBase _ _ = nan
   {-# INLINE logBase #-}
   sin = logMap sin
@@ -255,11 +327,29 @@ instance RealFloat a => Floating (SignedLog a) where
   {-# INLINE acos #-}
   atan = logMap atan
   {-# INLINE atan #-}
-  sinh = logMap sinh
+
+  -- log (sinh (exp a))
+  --   = a + log (sinh (exp a) / exp a))
+  --   = a + log (1 + (exp a)^2 / 6 + (exp a)^4 / 120 + ...)
+  --   = a + (exp a)^2 / 6 - (exp a)^4 / 180 + ...
+  -- a < log (sinh (exp a)) < a + (exp a)^2 / 6
+  -- Therefore, if a < log (3 * eps) / 2,
+  -- a < log (sinh (exp a)) < a + eps / 2
+  -- and so if a < -1, then log (sinh (exp a)) rounds to a
+  sinh (SLExp sA a) = SLExp sA logValue
+    where expA = exp a
+          logValue | a < min (-1) (log (3*eps) / 2) = a
+                   | a < 0 = log (sinh expA)
+                   | otherwise = expA + log ((1 - exp (-2 * expA)) / 2)
   {-# INLINE sinh #-}
-  cosh = logMap cosh
+  cosh (SLExp _ a) = SLExp True (expA + log ((1 + exp (-2 * expA)) / 2))
+    where expA = exp a
   {-# INLINE cosh #-}
-  tanh = logMap tanh
+  -- log (tanh (exp a))
+  --   = a - (exp a)^2 / 3 + 7 * (exp a)^4 / 90 - ...
+  tanh (SLExp sA a) = SLExp sA logValue
+    where logValue | a < min (-1) (log (3*eps/2) / 2) = a
+                   | otherwise = log (tanh (exp a))
   {-# INLINE tanh #-}
   asinh = logMap asinh
   {-# INLINE asinh #-}
@@ -267,6 +357,10 @@ instance RealFloat a => Floating (SignedLog a) where
   {-# INLINE acosh #-}
   atanh = logMap atanh
   {-# INLINE atanh #-}
+
+  log1p (SLExp True a) = SLExp True (log (log1pexp a))
+  log1p (SLExp False a) = SLExp (a > 0) (log (negate (log1mexp a))) -- return positive NaN on failure
+  {-# INLINE log1p #-}
 
 -- $SignedLogProperFractionTests
 --
